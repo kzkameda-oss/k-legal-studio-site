@@ -1,0 +1,55 @@
+---
+import { site, nav } from '../data/site';
+import { getCollection } from 'astro:content';
+const services = (await getCollection('services')).sort((a, b) => a.data.order - b.data.order);
+const year = new Date().getFullYear();
+---
+<footer class="site-footer">
+  <div class="container site-footer__grid">
+    <div class="site-footer__office">
+      <p class="site-footer__name">{site.name}</p>
+      <p class="site-footer__rep">{site.representativeTitle}　{site.representative}（{site.association}　登録番号 {site.registrationNo}）</p>
+      <address>
+        {site.postal}　{site.address}<br />
+        TEL：<a href={site.telHref}>{site.tel}</a>　FAX：{site.fax}<br />
+        {site.hours}
+      </address>
+    </div>
+    <div>
+      <p class="site-footer__heading">業務案内</p>
+      <ul>
+        {services.map((s) => (
+          <li><a href={`/services/${s.id}/`}>{s.data.title}</a></li>
+        ))}
+      </ul>
+    </div>
+    <div>
+      <p class="site-footer__heading">サイトメニュー</p>
+      <ul>
+        <li><a href="/">ホーム</a></li>
+        {nav.map((n) => (<li><a href={n.href}>{n.label}</a></li>))}
+        <li><a href="/privacy/">プライバシーポリシー</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="site-footer__bottom">
+    <div class="container">
+      <small>© {year} {site.name}</small>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer { background: var(--navy-deep); color: #d7dbe3; margin-top: 0; font-size: 0.9rem; }
+  .site-footer a { color: #d7dbe3; text-decoration: none; }
+  .site-footer a:hover { color: var(--gold-light); }
+  .site-footer__grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 40px; padding: 56px 20px 40px; }
+  @media (max-width: 800px) { .site-footer__grid { grid-template-columns: 1fr; gap: 28px; } }
+  .site-footer__name { font-family: var(--font-serif); font-size: 1.25rem; color: #fff; margin-bottom: 4px; }
+  .site-footer__rep { font-size: 0.85rem; color: var(--gold-light); margin-bottom: 14px; }
+  address { font-style: normal; line-height: 1.9; margin: 0; }
+  .site-footer__heading { color: #fff; font-weight: 700; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.15); }
+  .site-footer ul { list-style: none; padding: 0; margin: 0; }
+  .site-footer li { margin: 0 0 6px; }
+  .site-footer__bottom { border-top: 1px solid rgba(255,255,255,0.1); padding: 16px 0; font-size: 0.8rem; color: #9aa3b3; }
+</style>

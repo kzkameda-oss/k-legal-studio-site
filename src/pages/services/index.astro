@@ -1,0 +1,32 @@
+---
+import Base from '../../layouts/Base.astro';
+import Cta from '../../components/Cta.astro';
+import { getCollection } from 'astro:content';
+const services = (await getCollection('services')).sort((a, b) => a.data.order - b.data.order);
+---
+<Base title="業務案内" description="亀田行政書士事務所の業務案内。建設業許可、経営事項審査、農地転用、産業廃棄物収集運搬業許可、宅建業免許、古物商許可、帰化申請など、奈良を中心に幅広い許認可申請に対応します。">
+  <div class="page-hero">
+    <div class="container">
+      <span class="en">Services</span>
+      <h1>業務案内</h1>
+      <p>事業に必要な許認可の取得から維持まで。ご依頼の多い手続きをご紹介します。</p>
+    </div>
+  </div>
+  <section class="section">
+    <div class="container">
+      <div class="grid grid--2">
+        {services.map((s) => (
+          <a class="card" href={`/services/${s.id}/`}>
+            <h3>{s.data.title}</h3>
+            <p>{s.data.summary}</p>
+            <span class="more">詳しく見る →</span>
+          </a>
+        ))}
+      </div>
+      <p class="note" style="margin-top:32px">
+        上記以外の手続きについても、まずはお気軽にお問い合わせください。他士業の業務にあたるものは、提携する司法書士・税理士・社会保険労務士・土地家屋調査士と連携して対応します。
+      </p>
+    </div>
+  </section>
+  <Cta />
+</Base>

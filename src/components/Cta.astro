@@ -1,0 +1,33 @@
+---
+import { site } from '../data/site';
+---
+<section class="cta">
+  <div class="container cta__inner">
+    <div>
+      <p class="cta__lead">まずはお気軽にご相談ください</p>
+      <h2 class="cta__title">初回のご相談は無料です</h2>
+      <p class="cta__text">「うちの場合は許可が取れるのか」「何から準備すればよいか」といった段階からご相談いただけます。お電話またはメールでご連絡ください。</p>
+    </div>
+    <div class="cta__actions">
+      <a class="cta__tel" href={site.telHref}>
+        <span class="cta__tel-label">TEL（{site.hours.split('（')[0]}）</span>
+        <span class="cta__tel-no">{site.tel}</span>
+      </a>
+      <a class="btn btn--white" href="/contact/">メールでお問い合わせ</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta { background: linear-gradient(135deg, var(--navy) 0%, #24395a 100%); color: #fff; padding: 56px 0; border-top: 4px solid var(--gold); }
+  .cta__inner { display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; align-items: center; }
+  @media (max-width: 800px) { .cta__inner { grid-template-columns: 1fr; } }
+  .cta__lead { color: var(--gold-light); font-size: 0.9rem; letter-spacing: 0.1em; margin-bottom: 6px; }
+  .cta__title { color: #fff; font-size: 1.7rem; margin-bottom: 12px; }
+  .cta__text { margin: 0; color: #d7dbe3; font-size: 0.95rem; }
+  .cta__actions { display: flex; flex-direction: column; gap: 14px; align-items: stretch; }
+  .cta__tel { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #fff; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25); border-radius: var(--radius); padding: 14px 20px; }
+  .cta__tel:hover { background: rgba(255,255,255,0.14); color: #fff; }
+  .cta__tel-label { font-size: 0.75rem; color: var(--gold-light); letter-spacing: 0.1em; }
+  .cta__tel-no { font-size: 1.8rem; font-weight: 700; font-family: var(--font-serif); letter-spacing: 0.05em; line-height: 1.2; }
+</style>

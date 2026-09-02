@@ -1,0 +1,198 @@
+---
+import Base from '../layouts/Base.astro';
+import Cta from '../components/Cta.astro';
+import { site } from '../data/site';
+import { getCollection } from 'astro:content';
+
+const services = (await getCollection('services')).sort((a, b) => a.data.order - b.data.order);
+const featured = services.filter((s) => s.data.featured);
+const rest = services.filter((s) => !s.data.featured);
+
+const strengths = [
+  {
+    title: '許認可の実務に特化',
+    text: '建設業許可・経営事項審査・農地転用・産廃許可など、事業に直結する許認可を中心に扱っています。要件の判断から書類収集、官公署との折衝までお任せください。',
+  },
+  {
+    title: '取得後の「維持」まで伴走',
+    text: '決算変更届・更新・変更届など、許可を維持するための年次手続きを期限管理込みでサポート。「気づいたら期限切れ」を防ぎます。',
+  },
+  {
+    title: '奈良・京都・大阪に対応',
+    text: '奈良県を中心に、京都府南部・大阪府の許可行政庁への申請実績があります。複数の都道府県にまたがる産廃許可なども一括で対応します。',
+  },
+  {
+    title: '他士業と連携したワンストップ対応',
+    text: '登記・税務・労務が絡む案件は、提携する司法書士・税理士・社会保険労務士と連携。窓口は当事務所ひとつで完結します。',
+  },
+];
+---
+<Base home>
+  <section class="hero">
+    <div class="container hero__inner">
+      <div class="hero__body">
+        <p class="hero__eyebrow">奈良市西大寺の行政書士事務所</p>
+        <h1 class="hero__title">許認可のことは、<br />事業のいちばん近くで。</h1>
+        <p class="hero__lead">
+          建設業許可・経営事項審査・農地転用・産業廃棄物収集運搬業許可・宅建業免許。<br class="pc" />
+          事業を進めるために必要な「許可」を、取得から維持まで一貫してお手伝いします。
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--primary" href="/contact/">無料相談を申し込む</a>
+          <a class="btn btn--outline" href="/services/">業務案内を見る</a>
+        </div>
+        <p class="hero__tel">
+          お電話でのご相談　<a href={site.telHref}>{site.tel}</a>
+          <span>{site.hours}</span>
+        </p>
+      </div>
+      <div class="hero__panel">
+        <p class="hero__panel-title">主な取扱業務</p>
+        <ul>
+          {featured.map((s) => (
+            <li><a href={`/services/${s.id}/`}>{s.data.title}</a></li>
+          ))}
+          <li><a href="/services/">その他の許認可・手続き</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--alt">
+    <div class="container">
+      <div class="section-head">
+        <span class="en">Services</span>
+        <h2>業務案内</h2>
+        <p>事業者の皆さまからご依頼の多い許認可を中心に、幅広い手続きに対応しています。</p>
+      </div>
+      <div class="grid grid--2">
+        {featured.map((s) => (
+          <a class="card" href={`/services/${s.id}/`}>
+            <h3>{s.data.title}</h3>
+            <p>{s.data.catch}</p>
+            <span class="more">詳しく見る →</span>
+          </a>
+        ))}
+      </div>
+      <div class="grid grid--4 grid--sub">
+        {rest.map((s) => (
+          <a class="card card--compact" href={`/services/${s.id}/`}>
+            <h3>{s.data.title}</h3>
+            <p>{s.data.catch}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="en">Why us</span>
+        <h2>当事務所の特長</h2>
+      </div>
+      <div class="grid grid--2">
+        {strengths.map((s, i) => (
+          <div class="strength">
+            <span class="strength__no">{String(i + 1).padStart(2, '0')}</span>
+            <h3>{s.title}</h3>
+            <p>{s.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--alt">
+    <div class="container">
+      <div class="section-head">
+        <span class="en">Flow</span>
+        <h2>ご依頼の流れ</h2>
+        <p>初回相談から許可取得まで、おおまかな流れです。</p>
+      </div>
+      <ol class="flow-mini">
+        <li><strong>お問い合わせ</strong><span>電話・メールでご連絡</span></li>
+        <li><strong>初回相談（無料）</strong><span>要件の確認・見通しのご説明</span></li>
+        <li><strong>お見積り・ご契約</strong><span>費用と期間を書面でご提示</span></li>
+        <li><strong>書類収集・作成</strong><span>必要書類の案内と申請書の作成</span></li>
+        <li><strong>申請・許可</strong><span>官公署へ申請、許可証をお渡し</span></li>
+      </ol>
+      <p class="center"><a class="btn btn--outline" href="/flow/">流れの詳細を見る</a></p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container office">
+      <div>
+        <div class="section-head">
+          <span class="en">Office</span>
+          <h2>事務所案内</h2>
+        </div>
+        <dl class="dl">
+          <dt>事務所名</dt><dd>{site.name}</dd>
+          <dt>代表</dt><dd>{site.representativeTitle}　{site.representative}<br /><small>{site.association}　登録番号 {site.registrationNo}</small></dd>
+          <dt>所在地</dt><dd>{site.postal}　{site.address}</dd>
+          <dt>電話</dt><dd><a href={site.telHref}>{site.tel}</a></dd>
+          <dt>受付時間</dt><dd>{site.hours}</dd>
+          <dt>アクセス</dt><dd>{site.access}</dd>
+          <dt>対応エリア</dt><dd>{site.area}</dd>
+        </dl>
+        <p style="margin-top:24px"><a class="btn btn--outline" href="/about/">事務所案内・アクセス</a></p>
+      </div>
+      <div class="office__map">
+        <iframe
+          title="事務所の地図"
+          src={`https://www.google.com/maps?q=${encodeURIComponent(site.address)}&output=embed&z=16`}
+          width="100%" height="320" style="border:0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <Cta />
+</Base>
+
+<style>
+  .hero { background: linear-gradient(120deg, #f7f5f0 0%, #efe9dc 100%); border-bottom: 1px solid var(--line); position: relative; overflow: hidden; }
+  .hero::after { content: ''; position: absolute; right: -120px; top: -80px; width: 420px; height: 420px; border-radius: 50%; border: 60px solid rgba(184,137,58,0.08); pointer-events: none; }
+  .hero__inner { display: grid; grid-template-columns: 1.5fr 1fr; gap: 48px; align-items: center; padding: 72px 20px; position: relative; }
+  @media (max-width: 900px) { .hero__inner { grid-template-columns: 1fr; padding: 48px 20px; } }
+  .hero__eyebrow { color: var(--gold); font-weight: 700; letter-spacing: 0.15em; font-size: 0.85rem; margin-bottom: 12px; }
+  .hero__title { font-size: 2.6rem; line-height: 1.35; margin-bottom: 20px; }
+  @media (max-width: 600px) { .hero__title { font-size: 1.9rem; } }
+  .hero__lead { font-size: 1.02rem; color: var(--ink); margin-bottom: 28px; }
+  .hero__actions { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
+  .hero__tel { font-size: 0.95rem; color: var(--muted); margin: 0; }
+  .hero__tel a { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 700; text-decoration: none; color: var(--navy); }
+  .hero__tel span { display: block; font-size: 0.8rem; }
+  .hero__panel { background: var(--navy); color: #fff; padding: 28px 28px 20px; border-radius: var(--radius); box-shadow: var(--shadow); border-top: 4px solid var(--gold); }
+  .hero__panel-title { font-family: var(--font-serif); color: var(--gold-light); font-size: 0.95rem; letter-spacing: 0.1em; margin-bottom: 10px; }
+  .hero__panel ul { list-style: none; margin: 0; padding: 0; }
+  .hero__panel li { border-top: 1px solid rgba(255,255,255,0.12); margin: 0; }
+  .hero__panel li a { display: block; padding: 11px 4px; color: #fff; text-decoration: none; font-weight: 500; }
+  .hero__panel li a::before { content: '›'; color: var(--gold); margin-right: 10px; }
+  .hero__panel li a:hover { color: var(--gold-light); }
+  .sp { display: none; }
+  @media (max-width: 600px) { .sp { display: inline; } .pc { display: none; } }
+
+  .grid--sub { margin-top: 24px; }
+  .card--compact { padding: 20px 20px; }
+  .card--compact h3 { font-size: 1rem; }
+  .card--compact p { font-size: 0.85rem; }
+
+  .strength { background: var(--bg-white); border: 1px solid var(--line); border-radius: var(--radius); padding: 30px 28px 24px; position: relative; }
+  .strength__no { font-family: var(--font-serif); color: var(--gold); font-size: 1.6rem; font-weight: 700; line-height: 1; display: block; margin-bottom: 10px; }
+  .strength h3 { font-size: 1.2rem; margin-bottom: 10px; }
+  .strength p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+  .flow-mini { list-style: none; padding: 0; margin: 0 0 32px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; counter-reset: f; }
+  @media (max-width: 860px) { .flow-mini { grid-template-columns: 1fr; } }
+  .flow-mini li { background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 16px 16px; position: relative; display: flex; flex-direction: column; gap: 4px; }
+  .flow-mini li::before { counter-increment: f; content: 'STEP ' counter(f); font-size: 0.7rem; letter-spacing: 0.15em; color: var(--gold); font-weight: 700; }
+  .flow-mini strong { color: var(--navy); font-size: 1rem; }
+  .flow-mini span { font-size: 0.85rem; color: var(--muted); }
+  .center { text-align: center; }
+
+  .office { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+  @media (max-width: 860px) { .office { grid-template-columns: 1fr; } }
+  .office__map { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: #fff; }
+</style>

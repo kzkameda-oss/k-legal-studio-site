@@ -1,0 +1,76 @@
+---
+import Base from '../../layouts/Base.astro';
+import Cta from '../../components/Cta.astro';
+import { site } from '../../data/site';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const services = await getCollection('services');
+  return services.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const all = (await getCollection('services')).sort((a, b) => a.data.order - b.data.order);
+---
+<Base title={entry.data.title} description={entry.data.summary}>
+  <div class="page-hero">
+    <div class="container">
+      <span class="en">Services</span>
+      <h1>{entry.data.title}</h1>
+      <p>{entry.data.catch}</p>
+    </div>
+  </div>
+  <div class="container">
+    <nav class="breadcrumb" aria-label="パンくずリスト">
+      <ol>
+        <li><a href="/">ホーム</a></li>
+        <li><a href="/services/">業務案内</a></li>
+        <li aria-current="page">{entry.data.title}</li>
+      </ol>
+    </nav>
+  </div>
+  <section class="section" style="padding-top:36px">
+    <div class="container layout-2col">
+      <article class="prose service-body">
+        <p class="service-summary">{entry.data.summary}</p>
+        <Content />
+        <div class="service-contact">
+          <p><strong>{entry.data.title}のご相談は無料です。</strong>お気軽にお問い合わせください。</p>
+          <div class="service-contact__actions">
+            <a class="btn btn--primary" href="/contact/">お問い合わせ</a>
+            <a class="btn btn--outline" href={site.telHref}>TEL {site.tel}</a>
+          </div>
+        </div>
+      </article>
+      <aside class="sidebar">
+        <div class="side-box">
+          <h3>業務案内</h3>
+          <ul>
+            {all.map((s) => (
+              <li><a href={`/services/${s.id}/`} aria-current={s.id === entry.id ? 'page' : undefined}>{s.data.title}</a></li>
+            ))}
+          </ul>
+        </div>
+        <div class="side-box side-box--tel">
+          <h3>お問い合わせ</h3>
+          <p class="side-tel"><a href={site.telHref}>{site.tel}</a></p>
+          <p class="note">{site.hours}</p>
+          <a class="btn btn--primary" href="/contact/" style="width:100%">メールで相談する</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+  <Cta />
+</Base>
+
+<style>
+  .service-summary { font-size: 1.05rem; padding: 18px 22px; background: var(--bg-white); border-left: 4px solid var(--navy); border-radius: 0 var(--radius) var(--radius) 0; margin-bottom: 2em; }
+  .service-body :global(table) { background: var(--bg-white); }
+  .service-contact { margin-top: 3em; padding: 26px; background: var(--bg-white); border: 1px solid var(--line); border-radius: var(--radius); }
+  .service-contact p { margin-bottom: 14px; }
+  .service-contact__actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .side-tel { margin: 0 0 4px; }
+  .side-tel a { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 700; text-decoration: none; }
+  .side-box--tel .note { margin-bottom: 14px; }
+</style>

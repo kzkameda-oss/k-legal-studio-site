@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://k-legal-studio.com/sitemap-index.xml
