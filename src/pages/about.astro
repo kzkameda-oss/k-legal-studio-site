@@ -67,6 +67,7 @@ import { site } from '../data/site';
           src={`https://www.google.com/maps?q=${encodeURIComponent(site.address)}&output=embed&z=16`}
           width="100%" height="420" style="border:0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
+      <p class="note" style="margin:10px 0 0;text-align:right"><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(site.address)}`} target="_blank" rel="noopener">Googleマップで開く</a></p>
     </div>
   </section>
   <Cta />
