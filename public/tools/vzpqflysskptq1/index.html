@@ -1,0 +1,1882 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登録免許税クイック計算機</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#4A7FC5">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="登録免許税">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png" type="image/png">
+
+<style>
+/* v2 2026-11-07：フォントはローカル（OFFLINE表示と整合）。Google Fonts の @import を撤去 */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #eeeeee;
+  --surface: #ffffff;
+  --surface2: #f6f5f4;
+  --border: #d8d8d8;
+  --border-light: #e8e8e8;
+  --text: #1a1a1a;
+  --text-mid: #444444;
+  --text-dim: #888888;
+  --accent: #4A7FC5;
+  --accent-light: rgba(74, 127, 197, 0.10);
+  --accent-hover: rgba(74, 127, 197, 0.16);
+  --accent-soft: rgba(74, 127, 197, 0.06);
+  --black: #1a1a1a;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --reduced: #3a8f5c;
+  --reduced-light: rgba(58, 143, 92, 0.08);
+  --warn: #b8731a;
+  --warn-light: rgba(184, 115, 26, 0.10);
+  --danger: #c44;
+  --font: "Noto Sans JP", "Yu Gothic UI", "Meiryo UI", "Meiryo", "Hiragino Sans", sans-serif;
+  --mono: "Consolas", "Roboto Mono", "Menlo", monospace;
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--surface);
+  min-height: 100vh;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  padding-bottom: 96px; /* 合計バーの分 */
+}
+
+/* Header */
+.header {
+  padding: 14px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.logo {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--black);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+.logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+.logo-sub {
+  font-weight: 300;
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+  margin-left: 4px;
+}
+.date-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.date-row input[type=date] {
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  color: var(--text);
+  outline: none;
+}
+.date-row input[type=date]:focus { box-shadow: 0 0 0 2px var(--accent); border-color: transparent; }
+
+/* プリセット */
+.presets {
+  padding: 10px 16px 0;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.presets .p-label { font-size: 11px; color: var(--text-dim); margin-right: 2px; }
+.preset-btn {
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-mid);
+  font-size: 11.5px;
+  padding: 5px 10px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all 0.12s;
+}
+.preset-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.preset-btn.clear { margin-left: auto; color: var(--danger); border-color: transparent; background: transparent; }
+.preset-btn.clear:hover { background: #f0e0e0; border-color: #f0e0e0; color: var(--danger); }
+
+/* Cards container */
+.cards {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Calc card */
+.calc-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border-light);
+  gap: 10px;
+}
+.card-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+select.sel {
+  padding: 6px 28px 6px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: var(--font);
+  font-weight: 500;
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+select.sel:focus { border-color: transparent; box-shadow: 0 0 0 2px var(--accent); }
+select.sel.small { font-size: 12px; padding: 5px 24px 5px 8px; font-weight: 400; }
+select.sel.reduced-on { color: var(--reduced); border-color: var(--reduced); }
+.card-type-select { flex: 1; }
+
+.card-remove {
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s;
+  flex-shrink: 0;
+}
+.card-remove:hover { background: #f0e0e0; color: var(--danger); }
+
+/* Card body */
+.card-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.field-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  min-width: 72px;
+  flex-shrink: 0;
+  letter-spacing: 0.3px;
+}
+.amount-input {
+  flex: 1;
+  min-width: 120px;
+  padding: 9px 12px;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-family: var(--mono);
+  color: var(--text);
+  outline: none;
+  text-align: right;
+  transition: border-color 0.2s;
+}
+.amount-input:focus { border-color: transparent; box-shadow: 0 0 0 2px var(--accent); }
+.amount-input::placeholder { color: var(--text-dim); font-size: 12px; text-align: left; }
+.amount-input.pending { color: var(--warn); }
+.field-unit { font-size: 12px; color: var(--text-mid); flex-shrink: 0; }
+.count-input, .frac-input, .area-input {
+  padding: 9px 8px;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-family: var(--mono);
+  color: var(--text);
+  outline: none;
+  text-align: center;
+}
+.count-input { width: 64px; }
+.frac-input { width: 52px; padding: 7px 4px; font-size: 13px; }
+.area-input { width: 96px; text-align: right; }
+.count-input:focus, .frac-input:focus, .area-input:focus { border-color: transparent; box-shadow: 0 0 0 2px var(--accent); }
+
+/* 物件行 */
+.prop-rows { display: flex; flex-direction: column; gap: 6px; }
+.prop-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 6px;
+}
+.prop-row .frac {
+  display: flex; align-items: center; gap: 3px;
+  font-size: 11px; color: var(--text-dim);
+}
+.prop-row .frac .slash { font-family: var(--mono); font-size: 14px; color: var(--text-dim); }
+.prop-row .row-remove {
+  width: 24px; height: 24px; border: none; background: transparent; color: var(--text-dim);
+  font-size: 15px; cursor: pointer; border-radius: 6px;
+}
+.prop-row .row-remove:hover { background: #f0e0e0; color: var(--danger); }
+.prop-row .row-remove:disabled { opacity: 0.25; cursor: default; }
+.row-sub {
+  grid-column: 2 / 5;
+  font-size: 11px;
+  color: var(--text-dim);
+  text-align: right;
+  font-family: var(--mono);
+  padding-right: 2px;
+}
+.row-sub:empty { display: none; }
+.row-sub .exempt { color: var(--reduced); font-weight: 600; font-family: var(--font); }
+.row-sub .pend { color: var(--warn); font-family: var(--font); }
+.row-tools { grid-column: 2 / 5; display: flex; justify-content: flex-end; }
+.mini-btn {
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--text-mid);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--font);
+}
+.mini-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.mini-btn.on { border-style: solid; border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+/* 新築基準表パネル */
+.kijun {
+  grid-column: 1 / 5;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-light);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.kijun .k-title { font-size: 11px; color: var(--accent); font-weight: 600; }
+.kijun .k-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.kijun .k-note { font-size: 10.5px; color: var(--text-dim); line-height: 1.5; }
+.kijun .k-calc { font-family: var(--mono); font-size: 12px; color: var(--text-mid); flex: 1; text-align: right; }
+.kijun .k-apply {
+  border: none; background: var(--accent); color: #fff; font-size: 12px; padding: 6px 12px;
+  border-radius: 6px; cursor: pointer; font-family: var(--font); font-weight: 500;
+}
+.kijun .k-apply:disabled { opacity: 0.4; cursor: default; }
+
+/* 軽減行 */
+.reduce-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.reduce-row .sel { flex: 1; min-width: 160px; }
+.reduce-note { font-size: 11px; color: var(--text-dim); }
+.reduce-note.warn { color: var(--warn); }
+.reduce-note.ok { color: var(--reduced); }
+
+/* Toggle */
+.toggle-row { display: flex; align-items: center; gap: 8px; }
+.toggle-switch { position: relative; width: 40px; height: 22px; cursor: pointer; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-track { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--border); border-radius: 11px; transition: background 0.2s; }
+.toggle-switch input:checked + .toggle-track { background: var(--reduced); }
+.toggle-switch input:disabled + .toggle-track { opacity: 0.4; }
+.toggle-knob { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+.toggle-switch input:checked ~ .toggle-knob { transform: translateX(18px); }
+.toggle-label { font-size: 12px; color: var(--text-dim); transition: color 0.2s; }
+.toggle-label.active { color: var(--reduced); font-weight: 500; }
+
+/* Result */
+.card-result {
+  border-top: 1px solid var(--border-light);
+  padding: 12px 14px;
+  background: var(--surface2);
+}
+.card-result:empty { display: none; }
+.result-line { display: flex; align-items: center; padding: 3px 0; gap: 8px; }
+.result-line .r-label { font-size: 11px; color: var(--text-dim); min-width: 92px; flex-shrink: 0; }
+.result-line .r-value { font-size: 13px; color: var(--text-mid); font-family: var(--mono); flex: 1; text-align: right; }
+.result-line .r-value .law { font-family: var(--font); font-size: 10.5px; color: var(--text-dim); margin-left: 6px; }
+.result-tax {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  border-radius: var(--radius-sm); padding: 8px; margin: 6px -4px 0;
+  border-top: 1px solid var(--border-light); transition: background 0.12s;
+}
+.result-tax:hover { background: var(--accent-light); }
+.result-tax .r-label { font-size: 12px; color: var(--accent); font-weight: 600; min-width: 92px; }
+.result-tax .r-value { font-size: 18px; font-weight: 600; color: var(--accent); font-family: var(--mono); flex: 1; text-align: right; letter-spacing: 0.5px; }
+.result-tax .copy-hint { font-size: 10px; color: var(--accent); opacity: 0; transition: opacity 0.12s; font-weight: 500; letter-spacing: 0.5px; }
+.result-tax:hover .copy-hint { opacity: 1; }
+.result-tax.exempt .r-value { color: var(--reduced); font-size: 15px; }
+.result-tax.exempt .r-label { color: var(--reduced); }
+.reduced-badge { font-size: 10px; color: var(--reduced); background: var(--reduced-light); padding: 2px 6px; border-radius: 4px; font-weight: 500; font-family: var(--font); }
+.warn-badge { font-size: 10px; color: var(--warn); background: var(--warn-light); padding: 2px 6px; border-radius: 4px; font-weight: 500; font-family: var(--font); }
+.result-actions { display: flex; gap: 6px; margin-top: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.act-btn {
+  border: 1px solid var(--border); background: var(--surface); color: var(--text-mid);
+  font-size: 11px; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-family: var(--font);
+}
+.act-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+/* Add button */
+.add-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 12px; border: 1.5px dashed var(--border); border-radius: var(--radius);
+  background: transparent; color: var(--text-dim); font-size: 13px; font-family: var(--font);
+  cursor: pointer; transition: all 0.12s;
+}
+.add-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.add-btn .plus { font-size: 16px; font-weight: 300; }
+
+/* 合計バー */
+.total-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  display: flex; justify-content: center; pointer-events: none;
+}
+.total-inner {
+  pointer-events: auto;
+  width: 100%; max-width: 720px;
+  background: var(--surface);
+  border-top: 2px solid var(--accent);
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+  padding: 10px 16px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.total-inner .t-label { font-size: 11px; color: var(--text-dim); }
+.total-inner .t-count { font-size: 11px; color: var(--text-dim); }
+.total-inner .t-value {
+  font-family: var(--mono); font-size: 20px; font-weight: 600; color: var(--accent);
+  flex: 1; text-align: right; cursor: pointer; letter-spacing: 0.5px;
+}
+.total-inner .t-value:hover { text-decoration: underline; }
+
+/* Reference */
+.ref-section { padding: 16px; border-top: 1px solid var(--border); }
+.ref-title { font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+.ref-title .lite { font-weight: 300; font-size: 10.5px; color: var(--text-dim); }
+.ref-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+.ref-table th { text-align: left; padding: 6px 8px; background: var(--surface2); color: var(--text-dim); font-weight: 500; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.ref-table td { padding: 6px 8px; border-bottom: 1px solid var(--border-light); color: var(--text-mid); vertical-align: top; }
+.ref-table .rate { font-family: var(--mono); white-space: nowrap; }
+.ref-table .reduced-rate { color: var(--reduced); }
+.ref-table .until { font-size: 10.5px; color: var(--text-dim); }
+.ref-table .until.expired { color: var(--danger); }
+.ref-note { font-size: 10.5px; color: var(--text-dim); line-height: 1.6; margin-top: 8px; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 92px; left: 50%; transform: translateX(-50%) translateY(10px);
+  background: var(--black); color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 12px;
+  opacity: 0; transition: all 0.2s; pointer-events: none; z-index: 30; white-space: pre-line; text-align: left;
+  max-width: 90vw;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.footer { padding: 14px 16px 20px; font-size: 10.5px; color: var(--text-dim); border-top: 1px solid var(--border-light); line-height: 1.6; }
+
+@media (max-width: 480px) {
+  .field-label { min-width: 60px; }
+  .result-line .r-label, .result-tax .r-label { min-width: 72px; }
+}
+
+/* v3：計算メモとして印刷（ボタン・税率一覧を消し、合計を本文に流す） */
+.print-head { display: none; }
+.type-note { font-size: 10.5px; color: var(--text-dim); line-height: 1.5; margin-top: 6px; }
+@media print {
+  html, body { background: #fff; }
+  .app { max-width: none; border: 0; padding-bottom: 0; min-height: 0; }
+  .presets, .add-btn, .card-remove, .row-remove, .row-tools, .result-actions, .copy-hint, .toast,
+  .total-inner .act-btn, .k-apply, .mini-btn, .ref-section, .toggle-switch { display: none !important; }
+  .print-head { display: block; padding: 8px 20px 0; font-size: 11px; color: #444; }
+  .total-bar { position: static; display: block; }
+  .total-inner { box-shadow: none; border-top: 2px solid #000; max-width: none; }
+  .total-inner .t-value { color: #000; }
+  .calc-card { break-inside: avoid; page-break-inside: avoid; }
+  .header { border-bottom: 1px solid #000; }
+  input, select { border-color: transparent !important; background: transparent !important; box-shadow: none !important; }
+  .footer { font-size: 9px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="logo">
+      <span class="logo-mark">税</span>登録免許税クイック計算機<span class="logo-sub">OFFLINE / v3</span>
+    </div>
+    <div class="date-row">
+      申請日
+      <input type="date" id="applyDate" onchange="onDateChange(this.value)">
+    </div>
+  </div>
+
+  <div class="print-head" id="printHead"></div>
+  <div class="presets" id="presets"></div>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="ref-section">
+    <div class="ref-title">税率一覧 <span class="lite">期限は申請日（上の日付）で判定。赤字は期限切れ</span></div>
+    <table class="ref-table" id="refTable"></table>
+    <div class="ref-note" id="refNote"></div>
+  </div>
+
+  <div class="footer" id="footer"></div>
+</div>
+
+<div class="total-bar"><div class="total-inner" id="totalBar"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===MASTER-BEGIN=== */
+// 正本：~/.claude/skills/shiho-shoshi-estimate/references/toroku_menkyozei_master.json
+// 手で直さない。sync_toumen_master.py で埋め込む（マスタ確認日 2026-11-07）
+const MASTER = {
+  "_what": "登録免許税の税率・軽減の期限・定額のマスタ。正本はこのファイル。見積スクリプト（generate_estimate.py）が読み、登録免許税クイック計算機（_共通\\ツール\\登録免許税クイック計算機.html）へは scripts/sync_toumen_master.py で埋め込む。",
+  "_checked": "2026-11-07",
+  "_checked_note": "土地売買15/1000は令和8年度改正で令和11年3月31日まで3年延長（財務省大綱・国税庁No.7191）。住宅用家屋の各軽減は令和9年3月31日まで（国税庁No.7191）。相続登記の免税は法務局ページの条番号で措法84条の2の2（旧84条の2の3）、第1項（死亡した相続人名義）・第2項（100万円以下の土地）とも令和9年3月31日まで、100万円判定は1筆ごと・持分を乗じた後の価額。第3弾（2026-11-07）で足した種類の税率は登録免許税法別表第一 一（Wikibooks掲載の現行条文）と第17条第1項の控除割合の表（e-Gov）で確認。仮登記そのものに措法72条の軽減は無い（平成18年までの経過措置のみ）。",
+  "_rate_unit": "rate は1万分率の整数（15/1000＝150、1.5/1000＝15）。浮動小数で持たない。",
+  "limits": {
+    "land_sale": {
+      "until": "2029-03-31",
+      "label": "令和11年3月31日"
+    },
+    "jutaku": {
+      "until": "2027-03-31",
+      "label": "令和9年3月31日"
+    },
+    "souzoku": {
+      "until": "2027-03-31",
+      "label": "令和9年3月31日"
+    }
+  },
+  "base": {
+    "hozon": {
+      "rate": 40,
+      "label": "4/1000",
+      "law": "登録免許税法別表第一 一(一)"
+    },
+    "iten_baibai": {
+      "rate": 200,
+      "label": "20/1000",
+      "law": "登録免許税法別表第一 一(二)ハ"
+    },
+    "iten_souzoku": {
+      "rate": 40,
+      "label": "4/1000",
+      "law": "登録免許税法別表第一 一(二)イ"
+    },
+    "iten_gappei": {
+      "rate": 40,
+      "label": "4/1000",
+      "law": "登録免許税法別表第一 一(二)イ"
+    },
+    "iten_kyoyubutsu": {
+      "rate": 40,
+      "label": "4/1000",
+      "law": "登録免許税法別表第一 一(二)ロ",
+      "note": "分割前の持分に応じた価額の部分に限る。持分を超えて取得する部分は20/1000（一(二)ハ）"
+    },
+    "iten_zoyo": {
+      "rate": 200,
+      "label": "20/1000",
+      "law": "登録免許税法別表第一 一(二)ハ"
+    },
+    "teitou": {
+      "rate": 40,
+      "label": "4/1000",
+      "law": "登録免許税法別表第一 一(五)"
+    },
+    "neteitou": {
+      "rate": 40,
+      "label": "4/1000",
+      "law": "登録免許税法別表第一 一(五)"
+    },
+    "kyokudo_zogaku": {
+      "rate": 40,
+      "label": "4/1000",
+      "law": "登録免許税法第12条第1項・別表第一 一(五)",
+      "note": "増加額を課税標準として新たな設定とみなす"
+    },
+    "teitou_iten_joto": {
+      "rate": 20,
+      "label": "2/1000",
+      "law": "登録免許税法別表第一 一(六)ロ",
+      "note": "債権譲渡・代位弁済等。抵当権は債権額、根抵当権（全部譲渡）は極度額"
+    },
+    "teitou_iten_souzoku": {
+      "rate": 10,
+      "label": "1/1000",
+      "law": "登録免許税法別表第一 一(六)イ",
+      "note": "相続・法人合併による抵当権の移転"
+    },
+    "chijou": {
+      "rate": 100,
+      "label": "10/1000",
+      "law": "登録免許税法別表第一 一(三)イ",
+      "note": "地上権・永小作権・賃借権・採石権の設定又は転貸"
+    },
+    "haigusha": {
+      "rate": 20,
+      "label": "2/1000",
+      "law": "登録免許税法別表第一 一(三の二)"
+    },
+    "kari_iten": {
+      "rate": 100,
+      "label": "10/1000",
+      "law": "登録免許税法別表第一 一(十二)ロ(3)",
+      "note": "売買等その他の原因による所有権移転の仮登記・移転請求権保全の仮登記。仮登記に措法72条の軽減は無い"
+    },
+    "kari_iten_souzoku": {
+      "rate": 20,
+      "label": "2/1000",
+      "law": "登録免許税法別表第一 一(十二)ロ(1)・(2)",
+      "note": "相続・法人合併・共有物分割による所有権移転の仮登記"
+    },
+    "kari_honto": {
+      "rate": 100,
+      "label": "10/1000",
+      "law": "登録免許税法別表第一 一(二)ハ・第17条第1項",
+      "note": "本則20/1000から仮登記分10/1000を控除。土地売買は措法72条①の15/1000から控除して5/1000"
+    },
+    "kari_honto_souzoku": {
+      "rate": 20,
+      "label": "2/1000",
+      "law": "登録免許税法別表第一 一(二)イ・ロ・第17条第1項",
+      "note": "本則4/1000から仮登記分2/1000を控除"
+    }
+  },
+  "reductions": {
+    "land_sale": {
+      "label": "土地の売買 15/1000",
+      "rate": 150,
+      "rateLabel": "15/1000",
+      "law": "租税特別措置法第72条第1項",
+      "limit": "land_sale"
+    },
+    "land_sale_honto": {
+      "label": "土地の売買（仮登記分控除後）5/1000",
+      "rate": 50,
+      "rateLabel": "5/1000",
+      "law": "租税特別措置法第72条第1項・登録免許税法第17条第1項",
+      "limit": "land_sale"
+    },
+    "hozon_jutaku": {
+      "label": "住宅用家屋 1.5/1000",
+      "rate": 15,
+      "rateLabel": "1.5/1000",
+      "law": "租税特別措置法第72条の2",
+      "limit": "jutaku"
+    },
+    "hozon_choki": {
+      "label": "認定長期優良住宅 1/1000",
+      "rate": 10,
+      "rateLabel": "1/1000",
+      "law": "租税特別措置法第74条",
+      "limit": "jutaku"
+    },
+    "hozon_teitanso": {
+      "label": "認定低炭素住宅 1/1000",
+      "rate": 10,
+      "rateLabel": "1/1000",
+      "law": "租税特別措置法第74条の2",
+      "limit": "jutaku"
+    },
+    "iten_jutaku": {
+      "label": "住宅用家屋 3/1000",
+      "rate": 30,
+      "rateLabel": "3/1000",
+      "law": "租税特別措置法第73条",
+      "limit": "jutaku"
+    },
+    "iten_choki_kodate": {
+      "label": "認定長期優良住宅・一戸建て 2/1000",
+      "rate": 20,
+      "rateLabel": "2/1000",
+      "law": "租税特別措置法第74条",
+      "limit": "jutaku"
+    },
+    "iten_choki_mansion": {
+      "label": "認定長期優良住宅・マンション 1/1000",
+      "rate": 10,
+      "rateLabel": "1/1000",
+      "law": "租税特別措置法第74条",
+      "limit": "jutaku"
+    },
+    "iten_teitanso": {
+      "label": "認定低炭素住宅 1/1000",
+      "rate": 10,
+      "rateLabel": "1/1000",
+      "law": "租税特別措置法第74条の2",
+      "limit": "jutaku"
+    },
+    "iten_kaitori": {
+      "label": "買取再販住宅 1/1000",
+      "rate": 10,
+      "rateLabel": "1/1000",
+      "law": "租税特別措置法第74条の3",
+      "limit": "jutaku"
+    },
+    "teitou_jutaku": {
+      "label": "住宅取得資金の抵当権 1/1000",
+      "rate": 10,
+      "rateLabel": "1/1000",
+      "law": "租税特別措置法第75条",
+      "limit": "jutaku"
+    }
+  },
+  "perUnit": {
+    "tsuika": {
+      "amount": 1500,
+      "law": "登録免許税法第13条第2項",
+      "unitLabel": "不動産の個数"
+    },
+    "masshou": {
+      "amount": 1000,
+      "law": "登録免許税法別表第一 一(十五)",
+      "capOver": 20,
+      "cap": 20000,
+      "unitLabel": "不動産の個数"
+    },
+    "henkou": {
+      "amount": 1000,
+      "law": "登録免許税法別表第一 一(十四)",
+      "unitLabel": "不動産の個数"
+    },
+    "kousei": {
+      "amount": 1000,
+      "law": "登録免許税法別表第一 一(十四)",
+      "unitLabel": "不動産の個数",
+      "note": "所有権・抵当権などの更正登記、抵当権の変更登記（債務者の住所変更・極度額減額など）"
+    },
+    "kari_teitou": {
+      "amount": 1000,
+      "law": "登録免許税法別表第一 一(十二)ト",
+      "unitLabel": "不動産の個数",
+      "note": "抵当権・根抵当権の設定仮登記など（所有権・地上権等・配偶者居住権以外の仮登記）"
+    },
+    "chiekiken": {
+      "amount": 1500,
+      "law": "登録免許税法別表第一 一(四)",
+      "unitLabel": "承役地の個数"
+    }
+  },
+  "menzei_souzoku": {
+    "tochi_max": 1000000,
+    "law": "租税特別措置法第84条の2の2第2項",
+    "lawShort": "措法84条の2の2②",
+    "limit": "souzoku",
+    "note": "価額100万円以下の土地の相続（相続人への遺贈を含む）による移転登記。1筆ごと、持分は全体価額×持分で判定。申請書に条文を書かないと免税されない。",
+    "item1": {
+      "law": "租税特別措置法第84条の2の2第1項",
+      "lawShort": "措法84条の2の2①",
+      "label": "死亡した相続人を名義人とする土地の相続登記（価額を問わず非課税）",
+      "note": "相続（相続人への遺贈を含む）で土地を取得した個人が、その移転登記を受ける前に死亡したとき、その個人を登記名義人とする移転登記。土地のみ。建物は課税。"
+    }
+  },
+  "rounding": {
+    "base_unit": 1000,
+    "tax_unit": 100,
+    "min_tax": 1000,
+    "note": "課税標準は同じ税率ごとに合算して1,000円未満切捨。税額は申請全体で合算して100円未満切捨、1,000円未満は1,000円。持分は評価額×持分（円未満切捨）。"
+  },
+  "unsupported_note": "抵当権の順位変更（抵当権の件数×不動産の個数×1,000円）、根抵当権の一部譲渡・分割譲渡（極度額÷共有者数×2/1000）、信託の登記は未対応。登記官に確認して手計算。",
+  "kijun": {
+    "office": "奈良地方法務局",
+    "year": "令和6年度",
+    "source": "司法書士\\Templates\\奈良地方法務局新築建物課税標準額.pdf（Web公開版は平成30年度で古い）",
+    "structs": [
+      "木造",
+      "軽量鉄骨造",
+      "鉄骨造",
+      "鉄筋コンクリート造"
+    ],
+    "table": {
+      "居宅": {
+        "木造": 103000,
+        "軽量鉄骨造": 111000,
+        "鉄骨造": 116000,
+        "鉄筋コンクリート造": 143000
+      },
+      "共同住宅": {
+        "木造": 96000,
+        "軽量鉄骨造": 111000,
+        "鉄骨造": 116000,
+        "鉄筋コンクリート造": 143000
+      },
+      "旅館・料亭・ホテル": {
+        "木造": 89000
+      },
+      "店舗・事務所・百貨店・銀行": {
+        "木造": 77000,
+        "軽量鉄骨造": 71000,
+        "鉄骨造": 94000,
+        "鉄筋コンクリート造": 168000
+      },
+      "劇場・病院": {
+        "木造": 81000
+      },
+      "工場・倉庫・市場": {
+        "木造": 39000,
+        "軽量鉄骨造": 37000,
+        "鉄骨造": 78000,
+        "鉄筋コンクリート造": 78000
+      },
+      "附属家": {
+        "木造": 84000,
+        "軽量鉄骨造": 80000,
+        "鉄骨造": 168000,
+        "鉄筋コンクリート造": 168000
+      }
+    },
+    "mapNote": "登記上の種類の読み替え（別表3）：店舗・事務所・校舎・集会所・給油所→店舗等／寄宿舎→共同住宅／倉庫・発電所・公衆浴場→工場等／車庫・物置・便所→附属家／病院・診療所・公会堂→劇場・病院／料理店→旅館等"
+  }
+};
+/* ===MASTER-END=== */
+
+// ============================================================
+// マスタから定数を組み立てる（税率は1万分率の整数。15/1000＝150）
+// ============================================================
+const MASTER_CHECKED = MASTER._checked || '?';
+const LIMITS = MASTER.limits;
+const REDUCTIONS = Object.assign({ none: { label: '適用なし', rate: null, law: '' } }, MASTER.reductions);
+const B = MASTER.base, PU = MASTER.perUnit;
+const MENZEI = MASTER.menzei_souzoku;
+const KIJUN_YEAR = MASTER.kijun.year;
+const KIJUN_OFFICE = MASTER.kijun.office;
+const KIJUN_STRUCT = MASTER.kijun.structs;
+const KIJUN_TABLE = MASTER.kijun.table;
+const KIJUN_MAP_NOTE = MASTER.kijun.mapNote;
+
+// 登記の種類
+//   input: 'props'  = 物件行（区分・評価額・持分）を合算して課税標準を出す
+//          'amount' = 金額1つ（債権額・極度額・増加額）
+//          'count'  = 不動産（承役地）の個数
+//   group  = 選択肢の見出し（所有権／担保権／用益権／仮登記／定額）
+//   note   = カードに出す注意書き
+const bt = k => ({ rate: B[k].rate, rateLabel: B[k].label, law: B[k].law, note: B[k].note || '' });
+const pu = k => ({ perUnit: PU[k].amount, law: PU[k].law, label: PU[k].unitLabel || '不動産の個数', note: PU[k].note || '' });
+const TYPES = [
+  // ---- 所有権
+  Object.assign({ id: 'hozon', group: '所有権', name: '所有権保存', input: 'props', kinds: ['tatemono'],
+    reduceFor: { tatemono: ['none', 'hozon_jutaku', 'hozon_choki', 'hozon_teitanso'] },
+    baseLabel: '課税価格', kijun: true }, bt('hozon')),
+  Object.assign({ id: 'iten_baibai', group: '所有権', name: '所有権移転（売買）', input: 'props', kinds: ['tochi', 'tatemono'],
+    reduceFor: { tochi: ['none', 'land_sale'],
+                 tatemono: ['none', 'iten_jutaku', 'iten_choki_kodate', 'iten_choki_mansion', 'iten_teitanso', 'iten_kaitori'] },
+    defaultReduce: { tochi: 'land_sale' },
+    baseLabel: '課税価格', kijun: true }, bt('iten_baibai')),
+  Object.assign({ id: 'iten_souzoku', group: '所有権', name: '所有権移転（相続・相続人への遺贈）', input: 'props', kinds: ['tochi', 'tatemono'],
+    menzei: true, baseLabel: '課税価格' }, bt('iten_souzoku')),
+  Object.assign({ id: 'iten_gappei', group: '所有権', name: '所有権移転（法人合併）', input: 'props', kinds: ['tochi', 'tatemono'],
+    baseLabel: '課税価格' }, bt('iten_gappei')),
+  Object.assign({ id: 'iten_kyoyubutsu', group: '所有権', name: '所有権移転（共有物分割）', input: 'props', kinds: ['tochi', 'tatemono'],
+    baseLabel: '課税価格' }, bt('iten_kyoyubutsu')),
+  Object.assign({ id: 'iten_zoyo', group: '所有権', name: '所有権移転（贈与・交換・財産分与・遺贈等）', input: 'props', kinds: ['tochi', 'tatemono'],
+    baseLabel: '課税価格' }, bt('iten_zoyo')),
+  // ---- 担保権
+  Object.assign({ id: 'teitou', group: '担保権', name: '抵当権設定', input: 'amount', label: '債権額',
+    reduceOptions: ['none', 'teitou_jutaku'], baseLabel: '債権額' }, bt('teitou')),
+  Object.assign({ id: 'neteitou', group: '担保権', name: '根抵当権設定', input: 'amount', label: '極度額', baseLabel: '極度額' }, bt('neteitou')),
+  Object.assign({ id: 'kyokudo_zogaku', group: '担保権', name: '根抵当権 極度額増額', input: 'amount', label: '増加額', baseLabel: '増加額' }, bt('kyokudo_zogaku')),
+  Object.assign({ id: 'teitou_iten_joto', group: '担保権', name: '抵当権移転（債権譲渡・代位弁済等）', input: 'amount', label: '債権額', baseLabel: '債権額' }, bt('teitou_iten_joto')),
+  Object.assign({ id: 'teitou_iten_souzoku', group: '担保権', name: '抵当権移転（相続・合併）', input: 'amount', label: '債権額', baseLabel: '債権額' }, bt('teitou_iten_souzoku')),
+  // ---- 用益権
+  Object.assign({ id: 'chijou', group: '用益権', name: '地上権・賃借権等 設定', input: 'props', kinds: ['tochi', 'tatemono'],
+    baseLabel: '課税価格' }, bt('chijou')),
+  Object.assign({ id: 'haigusha', group: '用益権', name: '配偶者居住権設定', input: 'props', kinds: ['tatemono'],
+    baseLabel: '課税価格' }, bt('haigusha')),
+  Object.assign({ id: 'chiekiken', group: '用益権', name: '地役権設定', input: 'count' }, pu('chiekiken')),
+  // ---- 仮登記
+  Object.assign({ id: 'kari_iten', group: '仮登記', name: '所有権移転仮登記（売買等）', input: 'props', kinds: ['tochi', 'tatemono'],
+    baseLabel: '課税価格' }, bt('kari_iten')),
+  Object.assign({ id: 'kari_iten_souzoku', group: '仮登記', name: '所有権移転仮登記（相続・合併・共有物分割）', input: 'props', kinds: ['tochi', 'tatemono'],
+    baseLabel: '課税価格' }, bt('kari_iten_souzoku')),
+  Object.assign({ id: 'kari_honto', group: '仮登記', name: '仮登記の本登記（売買等）', input: 'props', kinds: ['tochi', 'tatemono'],
+    reduceFor: { tochi: ['none', 'land_sale_honto'] }, defaultReduce: { tochi: 'land_sale_honto' },
+    baseLabel: '課税価格' }, bt('kari_honto'), { note: B.kari_honto.note + '。住宅用家屋の軽減（措法73）との併用は登記官に確認' }),
+  Object.assign({ id: 'kari_honto_souzoku', group: '仮登記', name: '仮登記の本登記（相続・合併・共有物分割）', input: 'props', kinds: ['tochi', 'tatemono'],
+    baseLabel: '課税価格' }, bt('kari_honto_souzoku')),
+  Object.assign({ id: 'kari_teitou', group: '仮登記', name: '抵当権設定仮登記等（定額）', input: 'count' }, pu('kari_teitou')),
+  // ---- 定額
+  Object.assign({ id: 'tsuika', group: '定額', name: '追加設定（共同担保）', input: 'count' }, pu('tsuika')),
+  Object.assign({ id: 'masshou', group: '定額', name: '抵当権抹消', input: 'count', cap: PU.masshou.cap, capOver: PU.masshou.capOver }, pu('masshou')),
+  Object.assign({ id: 'henkou', group: '定額', name: '住所・氏名変更', input: 'count' }, pu('henkou')),
+  Object.assign({ id: 'kousei', group: '定額', name: '更正・変更登記（所有権更正・債務者変更等）', input: 'count' }, pu('kousei')),
+];
+const TYPE_GROUPS = ['所有権', '担保権', '用益権', '仮登記', '定額'];
+const TYPE_MAP = {};
+TYPES.forEach(t => TYPE_MAP[t.id] = t);
+const KIND_LABEL = { tochi: '土地', tatemono: '建物' };
+
+// プリセット（よくある組合せ）。reduce は区分ごとの軽減、reduceAmount は金額型の軽減
+const PRESETS = [
+  { label: '売買＋抵当権', cards: [{ t: 'iten_baibai' }, { t: 'teitou' }] },
+  { label: '住宅売買＋住宅ローン', cards: [{ t: 'iten_baibai', reduce: { tatemono: 'iten_jutaku' } }, { t: 'teitou', reduceAmount: 'teitou_jutaku' }] },
+  { label: '新築保存＋住宅ローン', cards: [{ t: 'hozon', reduce: { tatemono: 'hozon_jutaku' } }, { t: 'teitou', reduceAmount: 'teitou_jutaku' }] },
+  { label: '相続＋住所変更', cards: [{ t: 'iten_souzoku' }, { t: 'henkou' }] },
+  { label: '借換（設定＋抹消）', cards: [{ t: 'teitou' }, { t: 'masshou' }] },
+];
+
+const STORAGE_KEY = 'toumen_calc_v2';
+
+// ============================================================
+// 状態
+// ============================================================
+let cards = [];
+let nextId = 1;
+let nextRowId = 1;
+let applyDate = todayISO();
+
+function todayISO() {
+  const d = new Date();
+  const z = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`;
+}
+function limitOK(limitKey) {
+  if (!limitKey) return true;
+  return applyDate <= LIMITS[limitKey].until;
+}
+function reductionUsable(redId) {
+  const r = REDUCTIONS[redId];
+  if (!r || !r.rate) return true;
+  return limitOK(r.limit);
+}
+
+function newRow(kind) {
+  return { rid: nextRowId++, kind, amount: '', pending: '', num: '', den: '', kijunOpen: false, kStruct: '木造', kKind: '居宅', kArea: '' };
+}
+
+function newCard(typeId) {
+  const type = TYPE_MAP[typeId];
+  const card = { id: nextId++, typeId, rows: [], amount: '', pending: '', count: '1', reduce: {}, reduceAmount: 'none', menzei: true, menzei1: false };
+  initCardForType(card, type);
+  return card;
+}
+function initCardForType(card, type) {
+  card.rows = [];
+  card.reduce = {};
+  card.reduceAmount = 'none';
+  card.amount = ''; card.pending = '';
+  card.menzei1 = false;
+  if (type.input === 'props') {
+    type.kinds.forEach(k => card.rows.push(newRow(k)));
+    type.kinds.forEach(k => {
+      const d = (type.defaultReduce && type.defaultReduce[k]) || 'none';
+      card.reduce[k] = reductionUsable(d) ? d : 'none';
+    });
+  }
+}
+function cardIsEmpty(card) {
+  const type = TYPE_MAP[card.typeId];
+  if (type.input === 'props') return card.rows.every(r => !r.amount && !r.pending);
+  if (type.input === 'amount') return !card.amount && !card.pending;
+  return (card.count || '1') === '1';
+}
+
+function addCard(typeId) {
+  cards.push(newCard(typeId || 'iten_baibai'));
+  renderAll();
+}
+function removeCard(id) {
+  cards = cards.filter(c => c.id !== id);
+  renderAll();
+}
+function findCard(id) { return cards.find(c => c.id === id); }
+function findRow(card, rid) { return card.rows.find(r => r.rid === rid); }
+
+function applyPreset(idx) {
+  const p = PRESETS[idx];
+  if (!p) return;
+  const allEmpty = cards.every(cardIsEmpty);
+  if (allEmpty) cards = [];
+  p.cards.forEach(spec => {
+    const c = newCard(spec.t);
+    if (spec.reduce) Object.keys(spec.reduce).forEach(k => { if (reductionUsable(spec.reduce[k])) c.reduce[k] = spec.reduce[k]; });
+    if (spec.reduceAmount && reductionUsable(spec.reduceAmount)) c.reduceAmount = spec.reduceAmount;
+    cards.push(c);
+  });
+  renderAll();
+  showToast(`${p.label} を${allEmpty ? '' : '追加で'}並べました`);
+}
+function clearAll() {
+  cards = []; nextId = 1; nextRowId = 1;
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+  addCard('iten_baibai');
+  showToast('クリアしました');
+}
+
+// ============================================================
+// 入力保持（ブラウザを閉じても残す。申請日は保存せず毎回その日）
+// ============================================================
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ v: 2, cards, nextId, nextRowId, savedAt: todayISO() }));
+  } catch (e) {}
+}
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if (!s || s.v !== 2 || !Array.isArray(s.cards) || !s.cards.length) return false;
+    // 知らない種別が混ざっていたら捨てる
+    if (!s.cards.every(c => TYPE_MAP[c.typeId])) return false;
+    cards = s.cards.map(c => {
+      c.rows = (c.rows || []).map(r => Object.assign(newRow(r.kind || 'tochi'), r, { kijunOpen: false }));
+      c.reduce = c.reduce || {}; c.pending = c.pending || ''; c.menzei1 = !!c.menzei1;
+      return c;
+    });
+    nextId = Math.max(s.nextId || 1, ...cards.map(c => c.id + 1));
+    nextRowId = Math.max(s.nextRowId || 1, ...cards.flatMap(c => c.rows.map(r => r.rid + 1)));
+    // 期限切れの軽減は外す
+    cards.forEach(card => {
+      Object.keys(card.reduce).forEach(k => { if (!reductionUsable(card.reduce[k])) card.reduce[k] = 'none'; });
+      if (!reductionUsable(card.reduceAmount)) card.reduceAmount = 'none';
+    });
+    return true;
+  } catch (e) { return false; }
+}
+
+// ============================================================
+// 金額の読み取り（全角・カンマ・円・「万」「億」）
+// ============================================================
+function toHalfWidth(s) {
+  return String(s)
+    .replace(/[０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
+    .replace(/[，、]/g, ',').replace(/．/g, '.').replace(/[円¥￥\s]/g, '');
+}
+// 「1500万」「1億2500万」「1500.5万」「2億」→ 円。読めなければ null
+function parseJa(s) {
+  s = toHalfWidth(s).replace(/,/g, '');
+  const m = s.match(/^(?:(\d+(?:\.\d+)?)億)?(?:(\d+(?:\.\d+)?)万)?(\d+)?$/);
+  if (!m || (!m[1] && !m[2])) return null;
+  const oku = m[1] ? parseFloat(m[1]) : 0;
+  const man = m[2] ? parseFloat(m[2]) : 0;
+  const tail = m[3] ? parseInt(m[3], 10) : 0;
+  const v = Math.round(oku * 100000000 + man * 10000) + tail;
+  return v > 0 ? v : null;
+}
+// 入力欄の値を {raw, pending} に分ける。raw=確定した数字列、pending=「億」や小数が未確定のまま残る文字列
+function readAmountField(el) {
+  const s = toHalfWidth(el.value);
+  if (/[万億.]/.test(s)) {
+    if (s.includes('万')) {
+      const v = parseJa(s);
+      if (v !== null) return { raw: String(v), pending: '', display: v.toLocaleString() };
+    }
+    return { raw: '', pending: s, display: s };
+  }
+  const raw = s.replace(/[^0-9]/g, '');
+  return { raw, pending: '', display: raw ? parseInt(raw, 10).toLocaleString() : '' };
+}
+// blur・Enter で「億」だけの入力などを確定させる
+function commitPending(pending) {
+  if (!pending) return null;
+  const v = parseJa(pending);
+  if (v !== null) return String(v);
+  const digits = toHalfWidth(pending).replace(/[^0-9]/g, '');
+  return digits || '';
+}
+function formatInputKeepCursor(el, display) {
+  const cursor = el.selectionStart;
+  const prevLen = el.value.length;
+  el.value = display;
+  const diff = el.value.length - prevLen;
+  try { el.setSelectionRange(cursor + diff, cursor + diff); } catch (e) {}
+}
+
+// ============================================================
+// 計算
+// ============================================================
+function floorTo(n, unit) { return Math.floor(n / unit) * unit; }
+
+// 物件行1つの持分後価額（円未満切捨）。入力不備なら null
+function rowValue(row) {
+  const amt = parseInt(row.amount || '', 10);
+  if (!amt || amt <= 0) return null;
+  const num = parseInt(row.num || '', 10);
+  const den = parseInt(row.den || '', 10);
+  if (row.num || row.den) {
+    if (!num || !den || num <= 0 || den <= 0) return null;
+    if (num > den) return null;
+    return Math.floor(amt * num / den);
+  }
+  return amt;
+}
+function rowFracLabel(row) {
+  if (row.num || row.den) return `${row.num || '?'}/${row.den || '?'}`;
+  return '';
+}
+
+function calcTax(card) {
+  const type = TYPE_MAP[card.typeId];
+
+  if (type.input === 'props') {
+    const groups = {};
+    const exemptRows = [];
+    let anyValue = false;
+    const menzeiOn = !!(type.menzei && card.menzei && limitOK(MENZEI.limit));
+    const menzei1On = !!(type.menzei && card.menzei1 && limitOK(MENZEI.limit));
+
+    card.rows.forEach(row => {
+      const v = rowValue(row);
+      if (v === null) return;
+      anyValue = true;
+      if (row.kind === 'tochi') {
+        // ①死亡した相続人名義の登記：土地は価額を問わず非課税。②100万円以下の土地
+        if (menzei1On) { exemptRows.push({ row, v, item: 1 }); return; }
+        if (menzeiOn && v <= MENZEI.tochi_max) { exemptRows.push({ row, v, item: 2 }); return; }
+      }
+      const redId = (card.reduce[row.kind] && reductionUsable(card.reduce[row.kind])) ? card.reduce[row.kind] : 'none';
+      const red = REDUCTIONS[redId];
+      const rate = red.rate || type.rate;
+      const rateLabel = red.rate ? red.rateLabel : type.rateLabel;
+      const key = `${rate}|${redId}`;
+      if (!groups[key]) groups[key] = { rate, rateLabel, redId, reduced: !!red.rate, law: red.rate ? red.law : type.law, rows: [], sum: 0, kinds: new Set() };
+      groups[key].rows.push({ row, v });
+      groups[key].sum += v;
+      groups[key].kinds.add(row.kind);
+    });
+    if (!anyValue) return null;
+
+    const glist = Object.values(groups);
+    let taxSum = 0;
+    glist.forEach(g => {
+      g.base = floorTo(g.sum, 1000);
+      g.tax = Math.floor(g.base * g.rate / 10000);  // rate は1万分率の整数（浮動小数の誤差回避）
+      g.kindLabel = [...g.kinds].map(k => KIND_LABEL[k]).join('・');
+      taxSum += g.tax;
+    });
+    let tax = floorTo(taxSum, 100);
+    const allExempt = glist.length === 0 && exemptRows.length > 0;
+    if (!allExempt && tax < 1000) tax = 1000;
+    if (allExempt) tax = 0;
+    return { kind: 'props', groups: glist, exemptRows, allExempt, tax, menzeiOn, menzei1On };
+
+  } else if (type.input === 'amount') {
+    const raw = parseInt(card.amount || '', 10);
+    if (!raw || raw <= 0) return null;
+    const base = floorTo(raw, 1000);
+    if (base <= 0) return null;
+    const redId = (card.reduceAmount && reductionUsable(card.reduceAmount)) ? card.reduceAmount : 'none';
+    const red = REDUCTIONS[redId];
+    const rate = red.rate || type.rate;
+    const rateLabel = red.rate ? red.rateLabel : type.rateLabel;
+    let tax = floorTo(Math.floor(base * rate / 10000), 100);
+    if (tax < 1000) tax = 1000;
+    return { kind: 'amount', base, rate, rateLabel, reduced: !!red.rate, law: red.rate ? red.law : type.law, tax };
+
+  } else {
+    const count = parseInt(card.count, 10) || 0;
+    if (count <= 0) return null;
+    let tax = type.perUnit * count;
+    let capped = false;
+    if (type.cap && count > type.capOver) { tax = type.cap; capped = true; }
+    return { kind: 'count', count, tax, capped };
+  }
+}
+
+// ============================================================
+// 申請書形式の文字列
+// ============================================================
+function yen(n) { return '金' + n.toLocaleString() + '円'; }
+// 「租税特別措置法第72条第1項・第73条」のように法令名を1回にまとめる
+function joinLaws(laws) {
+  const prefix = '租税特別措置法';
+  if (laws.every(l => l.startsWith(prefix))) return prefix + laws.map(l => l.slice(prefix.length)).join('・');
+  return laws.join('・');
+}
+
+// 免税の根拠条文（①②の別。長い形／短い形）
+function exemptLaws(r, short) {
+  const items = [...new Set(r.exemptRows.map(e => e.item))].sort();
+  return items.map(i => i === 1 ? (short ? MENZEI.item1.lawShort : MENZEI.item1.law) : (short ? MENZEI.lawShort : MENZEI.law));
+}
+
+function applicationText(card) {
+  const type = TYPE_MAP[card.typeId];
+  const r = calcTax(card);
+  if (!r) return '';
+  const lines = [];
+  if (r.kind === 'props') {
+    if (r.allExempt) {
+      lines.push(`登録免許税　${joinLaws(exemptLaws(r))}により非課税`);
+      return lines.join('\n');
+    }
+    if (r.groups.length === 1) {
+      lines.push(`${type.baseLabel}　${yen(r.groups[0].base)}`);
+    } else {
+      lines.push(`${type.baseLabel}　` + r.groups.map(g => `${g.kindLabel}　${yen(g.base)}`).join('　'));
+    }
+    // 税額の内訳は書かない（100円未満切捨は合計に対して行うため、区分ごとの額は端数付きになる）
+    let taxLine = `登録免許税　${yen(r.tax)}`;
+    const laws = [...new Set(r.groups.filter(g => g.reduced).map(g => g.law))];
+    if (laws.length) taxLine += '（' + joinLaws(laws) + '）';
+    lines.push(taxLine);
+    if (r.exemptRows.length) {
+      lines.push(`一部の土地につき${joinLaws(exemptLaws(r))}により非課税`);
+    }
+  } else if (r.kind === 'amount') {
+    lines.push(`${type.baseLabel}　${yen(r.base)}`);
+    lines.push(`登録免許税　${yen(r.tax)}` + (r.reduced ? `（${r.law}）` : ''));
+  } else {
+    lines.push(`登録免許税　${yen(r.tax)}`);
+  }
+  return lines.join('\n');
+}
+
+function copyApplication(id) {
+  const card = findCard(id);
+  const txt = applicationText(card);
+  if (!txt) return;
+  copyRaw(txt, txt);
+}
+function copyAllApplication() {
+  const parts = [];
+  cards.forEach((c, i) => {
+    const t = applicationText(c);
+    if (t) parts.push(`【${i + 1}】${TYPE_MAP[c.typeId].name}\n${t}`);
+  });
+  if (!parts.length) return;
+  const total = cards.reduce((s, c) => s + ((calcTax(c) || {}).tax || 0), 0);
+  parts.push(`合計　登録免許税　${yen(total)}`);
+  const txt = parts.join('\n\n');
+  copyRaw(txt, '全件を申請書形式でコピーしました');
+}
+
+// ============================================================
+// 描画
+// ============================================================
+function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
+function amountDisplay(raw, pending) { return pending ? pending : (raw ? parseInt(raw, 10).toLocaleString() : ''); }
+
+function renderAll() {
+  renderPresets();
+  renderCards();
+  renderTotal();
+  renderRef();
+  saveState();
+}
+
+function renderPresets() {
+  const el = document.getElementById('presets');
+  let h = `<span class="p-label">よくある組合せ</span>`;
+  PRESETS.forEach((p, i) => { h += `<button class="preset-btn" onclick="applyPreset(${i})">${p.label}</button>`; });
+  h += `<button class="preset-btn clear" onclick="clearAll()" title="すべてのカードを消して1枚に戻す">クリア</button>`;
+  h += `<button class="preset-btn" onclick="printMemo()" title="計算メモとして印刷・PDF保存（ボタンと税率一覧は出ない）">印刷</button>`;
+  el.innerHTML = h;
+}
+
+function renderCards() {
+  const container = document.getElementById('cards');
+  let html = '';
+  cards.forEach((card, idx) => {
+    const type = TYPE_MAP[card.typeId];
+    html += `<div class="calc-card" data-id="${card.id}">`;
+    html += `<div class="card-header"><div class="card-num">${idx + 1}</div>`;
+    html += `<select class="sel card-type-select" onchange="onTypeChange(${card.id}, this.value)">`;
+    TYPE_GROUPS.forEach(g => {
+      html += `<optgroup label="${g}">`;
+      TYPES.filter(t => t.group === g).forEach(t => { html += `<option value="${t.id}" ${t.id === card.typeId ? 'selected' : ''}>${t.name}</option>`; });
+      html += `</optgroup>`;
+    });
+    html += `</select>`;
+    if (cards.length > 1) html += `<button class="card-remove" onclick="removeCard(${card.id})" title="削除">×</button>`;
+    html += `</div>`;
+    html += `<div class="card-body">`;
+
+    if (type.input === 'props') {
+      html += `<div class="prop-rows">`;
+      card.rows.forEach(row => { html += renderRow(card, type, row); });
+      html += `</div>`;
+      html += `<div class="row-tools" style="justify-content:flex-start;gap:6px">`;
+      type.kinds.forEach(k => {
+        html += `<button class="mini-btn" onclick="addRow(${card.id}, '${k}')">＋ ${KIND_LABEL[k]}を追加</button>`;
+      });
+      html += `</div>`;
+      type.kinds.forEach(k => {
+        const opts = type.reduceFor && type.reduceFor[k];
+        if (!opts) return;
+        const cur = card.reduce[k] || 'none';
+        html += `<div class="reduce-row"><div class="field-label">軽減（${KIND_LABEL[k]}）</div>`;
+        html += `<select class="sel small ${cur !== 'none' ? 'reduced-on' : ''}" onchange="onReduceChange(${card.id}, '${k}', this.value)">`;
+        opts.forEach(o => {
+          const r = REDUCTIONS[o];
+          const usable = reductionUsable(o);
+          html += `<option value="${o}" ${o === cur ? 'selected' : ''} ${usable ? '' : 'disabled'}>${r.label}${usable ? '' : '（期限切れ）'}</option>`;
+        });
+        html += `</select>`;
+        html += reduceNote(cur);
+        html += `</div>`;
+      });
+      if (type.menzei) {
+        const ok = limitOK(MENZEI.limit);
+        html += `<div class="toggle-row"><div class="field-label">免税②</div>`;
+        html += `<label class="toggle-switch"><input type="checkbox" ${card.menzei && ok ? 'checked' : ''} ${ok ? '' : 'disabled'} onchange="onMenzeiToggle(${card.id}, this.checked)"><div class="toggle-track"></div><div class="toggle-knob"></div></label>`;
+        if (ok) {
+          html += `<div class="toggle-label ${card.menzei ? 'active' : ''}">${card.menzei ? `価額${(MENZEI.tochi_max / 10000)}万円以下の土地を非課税（${MENZEI.lawShort}）` : '適用なし'}</div>`;
+        } else {
+          html += `<div class="reduce-note warn">免税措置は${LIMITS[MENZEI.limit].label}まで（期限切れ）</div>`;
+        }
+        html += `</div>`;
+        if (ok) {
+          html += `<div class="toggle-row"><div class="field-label">免税①</div>`;
+          html += `<label class="toggle-switch"><input type="checkbox" ${card.menzei1 ? 'checked' : ''} onchange="onMenzei1Toggle(${card.id}, this.checked)"><div class="toggle-track"></div><div class="toggle-knob"></div></label>`;
+          html += `<div class="toggle-label ${card.menzei1 ? 'active' : ''}">${card.menzei1 ? `${MENZEI.item1.label}（${MENZEI.item1.lawShort}）` : '死亡した相続人を名義人にする登記なら ON'}</div>`;
+          html += `</div>`;
+          if (card.menzei1) html += `<div class="reduce-note warn">${MENZEI.item1.note}</div>`;
+        }
+      }
+      if (type.note) html += `<div class="type-note">${type.note}</div>`;
+    } else if (type.input === 'amount') {
+      html += `<div class="field-row"><div class="field-label">${type.label}</div>`;
+      html += `<input type="text" class="amount-input ${card.pending ? 'pending' : ''}" inputmode="text" placeholder="例: 3000万 / 30000000" value="${esc(amountDisplay(card.amount, card.pending))}" oninput="onAmountInput(${card.id}, this)" onblur="onAmountBlur(${card.id}, this)" onkeydown="onAmountKey(event, this, ${card.id})">`;
+      html += `<div class="field-unit">円</div></div>`;
+      if (card.pending) html += `<div class="reduce-note warn">「億」だけの入力は Enter か欄を離れると確定します</div>`;
+      if (type.note) html += `<div class="type-note">${type.note}</div>`;
+      if (type.reduceOptions) {
+        const cur = card.reduceAmount || 'none';
+        html += `<div class="reduce-row"><div class="field-label">軽減税率</div>`;
+        html += `<select class="sel small ${cur !== 'none' ? 'reduced-on' : ''}" onchange="onReduceAmountChange(${card.id}, this.value)">`;
+        type.reduceOptions.forEach(o => {
+          const r = REDUCTIONS[o];
+          const usable = reductionUsable(o);
+          html += `<option value="${o}" ${o === cur ? 'selected' : ''} ${usable ? '' : 'disabled'}>${r.label}${usable ? '' : '（期限切れ）'}</option>`;
+        });
+        html += `</select>` + reduceNote(cur) + `</div>`;
+      }
+    } else {
+      html += `<div class="field-row"><div class="field-label">${type.label}</div>`;
+      html += `<input type="number" class="count-input" min="1" max="999" value="${card.count}" oninput="onCountInput(${card.id}, this.value)">`;
+      html += `<div class="field-unit">個</div>`;
+      if (type.cap) html += `<div class="reduce-note">${type.capOver}個超は申請1件 ${type.cap.toLocaleString()}円</div>`;
+      html += `</div>`;
+      if (type.note) html += `<div class="type-note">${type.note}</div>`;
+    }
+
+    html += `</div>`; // card-body
+    html += `<div class="card-result">${renderResult(card)}</div>`;
+    html += `</div>`;
+  });
+
+  html += `<button class="add-btn" onclick="addCard()"><span class="plus">+</span> 計算を追加（${cards.length}件）</button>`;
+  container.innerHTML = html;
+}
+
+function reduceNote(redId) {
+  const r = REDUCTIONS[redId];
+  if (!r || !r.rate) return '';
+  const lim = LIMITS[r.limit];
+  return `<div class="reduce-note ok">${r.law}・${lim.label}まで</div>`;
+}
+
+function renderRow(card, type, row) {
+  let html = `<div class="prop-row" data-rid="${row.rid}">`;
+  if (type.kinds.length > 1) {
+    html += `<select class="sel small" onchange="onRowKind(${card.id}, ${row.rid}, this.value)">`;
+    type.kinds.forEach(k => { html += `<option value="${k}" ${k === row.kind ? 'selected' : ''}>${KIND_LABEL[k]}</option>`; });
+    html += `</select>`;
+  } else {
+    html += `<div class="field-label" style="min-width:auto">${KIND_LABEL[row.kind]}</div>`;
+  }
+  html += `<input type="text" class="amount-input ${row.pending ? 'pending' : ''}" inputmode="text" placeholder="評価額（例: 1500万）" value="${esc(amountDisplay(row.amount, row.pending))}" oninput="onRowAmount(${card.id}, ${row.rid}, this)" onblur="onRowBlur(${card.id}, ${row.rid}, this)" onkeydown="onRowKey(event, this, ${card.id}, ${row.rid})">`;
+  html += `<div class="frac">持分 <input type="text" class="frac-input" inputmode="numeric" placeholder="1" value="${esc(row.num)}" oninput="onRowFrac(${card.id}, ${row.rid}, 'num', this.value)"><span class="slash">/</span><input type="text" class="frac-input" inputmode="numeric" placeholder="1" value="${esc(row.den)}" oninput="onRowFrac(${card.id}, ${row.rid}, 'den', this.value)"></div>`;
+  html += `<button class="row-remove" title="この行を削除" onclick="removeRow(${card.id}, ${row.rid})" ${card.rows.length > 1 ? '' : 'disabled'}>×</button>`;
+  html += `<div class="row-sub" id="rowsub-${row.rid}">${rowSubText(card, type, row)}</div>`;
+  if (type.kijun && row.kind === 'tatemono') {
+    html += `<div class="row-tools"><button class="mini-btn ${row.kijunOpen ? 'on' : ''}" onclick="toggleKijun(${card.id}, ${row.rid})">新築基準表から（評価額なし）</button></div>`;
+    if (row.kijunOpen) html += renderKijun(card, row);
+  }
+  html += `</div>`;
+  return html;
+}
+
+function rowSubText(card, type, row) {
+  if (row.pending) return `<span class="pend">Enter か欄を離れると確定（${esc(row.pending)}）</span>`;
+  const v = rowValue(row);
+  if (v === null) {
+    if ((row.num || row.den) && row.amount) return '持分は 分子/分母 を両方入力（分子≦分母）';
+    return '';
+  }
+  const frac = rowFracLabel(row);
+  let s = frac ? `× ${frac} ＝ ${v.toLocaleString()} 円` : '';
+  if (type.menzei && row.kind === 'tochi' && limitOK(MENZEI.limit)) {
+    if (card.menzei1) s += (s ? '　' : '') + `<span class="exempt">非課税（${MENZEI.item1.lawShort}）</span>`;
+    else if (card.menzei && v <= MENZEI.tochi_max) s += (s ? '　' : '') + `<span class="exempt">非課税（${MENZEI.tochi_max / 10000}万円以下の土地）</span>`;
+  }
+  return s;
+}
+
+function renderKijun(card, row) {
+  const kinds = Object.keys(KIJUN_TABLE);
+  const unit = (KIJUN_TABLE[row.kKind] || {})[row.kStruct];
+  const area = parseFloat(row.kArea);
+  const ok = unit && area > 0;
+  const price = ok ? Math.floor(unit * area) : null;
+  let html = `<div class="kijun">`;
+  html += `<div class="k-title">${KIJUN_OFFICE} 新築建物課税標準価格認定基準表（${KIJUN_YEAR}）</div>`;
+  html += `<div class="k-row">`;
+  html += `<select class="sel small" onchange="onKijun(${card.id}, ${row.rid}, 'kKind', this.value)">`;
+  kinds.forEach(k => { html += `<option value="${k}" ${k === row.kKind ? 'selected' : ''}>${k}</option>`; });
+  html += `</select>`;
+  html += `<select class="sel small" onchange="onKijun(${card.id}, ${row.rid}, 'kStruct', this.value)">`;
+  KIJUN_STRUCT.forEach(s => {
+    const has = !!(KIJUN_TABLE[row.kKind] || {})[s];
+    html += `<option value="${s}" ${s === row.kStruct ? 'selected' : ''} ${has ? '' : 'disabled'}>${s}${has ? '' : '（基準なし）'}</option>`;
+  });
+  html += `</select>`;
+  html += `<input type="text" class="area-input" inputmode="decimal" placeholder="床面積" value="${esc(row.kArea)}" oninput="onKijun(${card.id}, ${row.rid}, 'kArea', this.value)"><div class="field-unit">㎡</div>`;
+  html += `</div>`;
+  html += `<div class="k-row">`;
+  html += `<div class="k-calc">${unit ? unit.toLocaleString() + ' 円/㎡' : '単価なし'}${ok ? ` × ${area} ㎡ ＝ ${price.toLocaleString()} 円` : ''}</div>`;
+  html += `<button class="k-apply" ${ok ? '' : 'disabled'} onclick="applyKijun(${card.id}, ${row.rid}, ${price || 0})">評価額に入れる</button>`;
+  html += `</div>`;
+  html += `<div class="k-note">${KIJUN_MAP_NOTE}。基準表は年度ごとに改定されるので、年度替わり後は法務局の最新版で単価を確認する。</div>`;
+  html += `</div>`;
+  return html;
+}
+
+function renderResult(card) {
+  const type = TYPE_MAP[card.typeId];
+  const r = calcTax(card);
+  if (!r) return '';
+  let html = '';
+  if (r.kind === 'props') {
+    r.groups.forEach(g => {
+      const lab = r.groups.length > 1 || r.exemptRows.length ? `${g.kindLabel}・` : '';
+      html += `<div class="result-line"><div class="r-label">${lab}課税標準</div><div class="r-value">${g.base.toLocaleString()} 円</div></div>`;
+      html += `<div class="result-line"><div class="r-label">${lab}税率</div><div class="r-value">${g.rateLabel}${g.reduced ? ' <span class="reduced-badge">軽減</span>' : ''}<span class="law">${g.law}</span></div></div>`;
+      if (r.groups.length > 1) html += `<div class="result-line"><div class="r-label">${lab}税額</div><div class="r-value">${g.tax.toLocaleString()} 円</div></div>`;
+    });
+    if (r.exemptRows.length) {
+      const sum = r.exemptRows.reduce((s, e) => s + e.v, 0);
+      html += `<div class="result-line"><div class="r-label">非課税の土地</div><div class="r-value">${r.exemptRows.length}筆・${sum.toLocaleString()} 円 <span class="reduced-badge">免税</span><span class="law">${exemptLaws(r, true).join('・')}</span></div></div>`;
+    }
+    if (r.allExempt) {
+      html += `<div class="result-tax exempt" onclick="copyTax(${card.id})"><div class="r-label">登録免許税</div><div class="r-value">非課税（${exemptLaws(r, true).join('・')}）</div><div class="copy-hint">COPY</div></div>`;
+    } else {
+      html += taxLine(card, r.tax);
+    }
+  } else if (r.kind === 'amount') {
+    html += `<div class="result-line"><div class="r-label">${type.baseLabel}</div><div class="r-value">${r.base.toLocaleString()} 円</div></div>`;
+    html += `<div class="result-line"><div class="r-label">税率</div><div class="r-value">${r.rateLabel}${r.reduced ? ' <span class="reduced-badge">軽減</span>' : ''}<span class="law">${r.law}</span></div></div>`;
+    html += taxLine(card, r.tax);
+  } else {
+    html += `<div class="result-line"><div class="r-label">計算</div><div class="r-value">${type.perUnit.toLocaleString()} 円 × ${r.count} 個${r.capped ? ` <span class="warn-badge">上限 ${type.cap.toLocaleString()}円</span>` : ''}<span class="law">${type.law}</span></div></div>`;
+    html += taxLine(card, r.tax);
+  }
+  html += `<div class="result-actions"><button class="act-btn" onclick="copyApplication(${card.id})">申請書形式でコピー</button></div>`;
+  return html;
+}
+function taxLine(card, tax) {
+  return `<div class="result-tax" onclick="copyTax(${card.id})"><div class="r-label">登録免許税</div><div class="r-value">${tax.toLocaleString()} 円</div><div class="copy-hint">COPY</div></div>`;
+}
+
+// 入力中の再描画（結果欄と行の小計だけ。入力欄は触らない）
+function updateCard(id) {
+  const card = findCard(id);
+  if (!card) return;
+  const type = TYPE_MAP[card.typeId];
+  const cardEl = document.querySelector(`.calc-card[data-id="${id}"]`);
+  if (!cardEl) return;
+  cardEl.querySelector('.card-result').innerHTML = renderResult(card);
+  if (type.input === 'props') {
+    card.rows.forEach(row => {
+      const el = document.getElementById(`rowsub-${row.rid}`);
+      if (el) el.innerHTML = rowSubText(card, type, row);
+    });
+  }
+  renderTotal();
+  saveState();
+}
+
+function renderTotal() {
+  const el = document.getElementById('totalBar');
+  let total = 0, n = 0;
+  cards.forEach(c => { const r = calcTax(c); if (r) { total += r.tax; n++; } });
+  el.innerHTML = `<div class="t-label">合計 登録免許税</div><div class="t-count">${n}件</div>` +
+    `<div class="t-value" onclick="copyRaw('${total.toLocaleString()}円', '${total.toLocaleString()}円  コピーしました')" title="クリックでコピー">${total.toLocaleString()} 円</div>` +
+    `<button class="act-btn" onclick="copyAllApplication()">全件を申請書形式でコピー</button>` +
+    `<button class="act-btn" onclick="copyEstimateConfig()" title="見積スキル shiho-shoshi-estimate の config.json の形でコピー">見積config</button>`;
+  const ph = document.getElementById('printHead');
+  if (ph) ph.textContent = `登録免許税 計算メモ　申請日 ${warekiDate(applyDate)}　作成 ${warekiDate(todayISO())}　税率マスタ確認日 ${MASTER_CHECKED}`;
+}
+
+// ============================================================
+// 見積スキルの config.json 形式で書き出す（第3弾）
+//   登記ごとに {type, params} を作る。見積スクリプトが同じ式で計算できる種別は tax を渡さず、
+//   計算機でしか出せないもの（相続免税・仮登記・仮登記の本登記・用益権・更正など）は tax を明示する。
+// ============================================================
+function warekiDate(iso) {
+  const [y, m, d] = (iso || todayISO()).split('-').map(n => parseInt(n, 10));
+  const r = y - 2018;  // 令和
+  return `令和${r}年${m}月${d}日`;
+}
+function sumRows(card, kind) {
+  return card.rows.filter(r => r.kind === kind).map(rowValue).filter(v => v !== null).reduce((a, b) => a + b, 0);
+}
+function rowCount(card) { return card.rows.filter(r => rowValue(r) !== null).length; }
+function rateOf(card, kind) {
+  const red = REDUCTIONS[(card.reduce[kind] && reductionUsable(card.reduce[kind])) ? card.reduce[kind] : 'none'];
+  return (red.rate || TYPE_MAP[card.typeId].rate) / 10000;
+}
+function estimateItem(card) {
+  const type = TYPE_MAP[card.typeId];
+  const r = calcTax(card);
+  if (!r) return null;
+  const n = type.input === 'props' ? Math.max(1, rowCount(card)) : (type.input === 'count' ? r.count : 1);
+  const land = type.input === 'props' ? sumRows(card, 'tochi') : 0;
+  const bld = type.input === 'props' ? sumRows(card, 'tatemono') : 0;
+  const amt = type.input === 'amount' ? parseInt(card.amount || '0', 10) : 0;
+  const item = { type: type.name, params: {}, _toumen_tax: r.tax };
+  const explicit = note => { item.tax = r.tax; if (note) item.note = note; };
+  switch (card.typeId) {
+    case 'hozon':
+      item.type = '所有権保存'; item.params = { value: bld, property_count: n };
+      if (card.reduce.tatemono && card.reduce.tatemono !== 'none') item.params.rate = rateOf(card, 'tatemono');
+      break;
+    case 'iten_baibai':
+      item.type = '所有権移転'; item.params = { land_value: land, building_value: bld, property_count: n };
+      if (land && (card.reduce.tochi || 'none') === 'none') item.params.land_rate = type.rate / 10000;
+      if (bld && card.reduce.tatemono && card.reduce.tatemono !== 'none') item.params.building_rate = rateOf(card, 'tatemono');
+      break;
+    case 'iten_souzoku':
+      item.type = '所有権移転（相続）'; item.params = { land_value: land, building_value: bld, property_count: n };
+      if (r.exemptRows.length) explicit(`相続免税（${exemptLaws(r, true).join('・')}）適用後の税額。計算機で算出`);
+      break;
+    case 'iten_gappei': case 'iten_kyoyubutsu':
+      item.type = '所有権移転'; item.label = type.name;
+      item.params = { land_value: land, building_value: bld, land_rate: type.rate / 10000, building_rate: type.rate / 10000, property_count: n };
+      if (card.typeId === 'iten_kyoyubutsu') item.note = B.iten_kyoyubutsu.note;
+      break;
+    case 'iten_zoyo':
+      item.type = '所有権移転（贈与）'; item.label = type.name; item.params = { land_value: land, building_value: bld, property_count: n };
+      break;
+    case 'teitou':
+      item.type = '抵当権設定'; item.params = { debt_amount: amt, property_count: 1 };
+      if (card.reduceAmount && card.reduceAmount !== 'none' && reductionUsable(card.reduceAmount)) item.params.rate = REDUCTIONS[card.reduceAmount].rate / 10000;
+      item.note = '不動産の個数（property_count）は計算機に無いので直す';
+      break;
+    case 'neteitou':
+      item.type = '根抵当権設定'; item.params = { limit_amount: amt, property_count: 1 }; item.note = '不動産の個数（property_count）は計算機に無いので直す';
+      break;
+    case 'kyokudo_zogaku':
+      item.type = '極度額増額'; item.params = { increase_amount: amt, property_count: 1 };
+      break;
+    case 'teitou_iten_joto': case 'teitou_iten_souzoku':
+      item.type = '抵当権移転（合併等）'; item.label = type.name; item.params = { debt_amount: amt, property_count: 1 };
+      explicit(`${type.rateLabel}（${type.law}）。計算機で算出`);
+      break;
+    case 'tsuika': item.type = '追加設定'; item.params = { property_count: n }; break;
+    case 'masshou': item.type = '抵当権抹消'; item.params = { property_count: n }; break;
+    case 'henkou': item.type = '名変'; item.params = { property_count: n }; break;
+    case 'kousei':
+      item.type = '抵当権変更'; item.label = '更正・変更登記'; item.params = { property_count: n };
+      explicit('1,000円×個数。報酬は内容（所有権更正／抵当権変更）で fee を指定');
+      break;
+    case 'chijou':
+      item.type = '賃借権設定'; item.label = type.name; item.params = { value: land + bld, property_count: n };
+      break;
+    case 'haigusha':
+      item.params = { value: bld, property_count: n }; explicit(`${type.rateLabel}（${type.law}）。報酬は fee を指定`);
+      break;
+    case 'chiekiken':
+      item.type = '地役権設定'; item.params = { property_count: n }; item.note = '承役地の個数';
+      break;
+    case 'kari_iten': case 'kari_iten_souzoku':
+      item.type = '所有権移転仮登記'; item.label = type.name; item.params = { land_value: land, building_value: bld, property_count: n };
+      if (card.typeId === 'kari_iten_souzoku') explicit(`${type.rateLabel}（${type.law}）。計算機で算出`);
+      break;
+    case 'kari_honto': case 'kari_honto_souzoku':
+      item.type = '所有権移転'; item.label = type.name;
+      item.params = { land_value: land, building_value: bld, land_rate: land ? rateOf(card, 'tochi') : type.rate / 10000, building_rate: type.rate / 10000, property_count: n };
+      explicit(`仮登記分を控除した税率（${type.law}）。計算機で算出`);
+      break;
+    case 'kari_teitou':
+      item.type = '抵当権設定仮登記'; item.label = type.name; item.params = { property_count: n, debt_amount: 0 };
+      explicit('1,000円×個数。報酬の区分に使う債権額（debt_amount）を入れる');
+      break;
+    default:
+      explicit('計算機の税額。報酬は fee を指定');
+  }
+  return item;
+}
+function estimateConfig() {
+  const regs = cards.map(estimateItem).filter(Boolean);
+  const propCount = cards.reduce((s, c) => s + (TYPE_MAP[c.typeId].input === 'props' ? rowCount(c) : 0), 0) || 1;
+  const hasIten = cards.some(c => /^(iten_|kari_honto)/.test(c.typeId) || c.typeId === 'hozon');
+  const hasSettei = cards.some(c => ['teitou', 'neteitou', 'tsuika', 'kyokudo_zogaku'].includes(c.typeId));
+  return {
+    _from: `登録免許税クイック計算機 v3 で ${todayISO()} に作成。申請日 ${applyDate}。client_name・property_note・property_count・fee を直してから generate_estimate.py に渡す`,
+    date: warekiDate(todayISO()),
+    client_name: '',
+    withholding: false,
+    prepaid: 0,
+    adjustment: 'auto',
+    auto_fuzui: true,
+    property_note: '',
+    registrations: regs,
+    other_costs: [
+      { name: '閲覧費用', amount: 660 * propCount },
+      { name: '謄本', amount: 520 * (hasIten && hasSettei ? 2 : 1) },
+      { name: '通信費等', amount: 1800 },
+    ],
+  };
+}
+function copyEstimateConfig() {
+  const cfg = estimateConfig();
+  if (!cfg.registrations.length) { showToast('計算できる行がありません'); return; }
+  copyRaw(JSON.stringify(cfg, null, 2), `見積config（${cfg.registrations.length}件）をコピーしました\n成果物フォルダに .json で保存して generate_estimate.py へ`);
+}
+function printMemo() {
+  renderTotal();
+  window.print();
+}
+
+function renderRef() {
+  const t = document.getElementById('refTable');
+  const ex = k => limitOK(k) ? '' : ' expired';
+  const until = k => `<span class="until${ex(k)}">${LIMITS[k].label}まで</span>`;
+  let h = `<tr><th>登記の種類</th><th>本則</th><th>軽減</th><th>根拠・期限</th></tr>`;
+  h += `<tr><td>所有権保存</td><td class="rate">${B.hozon.label}</td><td class="rate reduced-rate">住宅用家屋 1.5<br>長期優良・低炭素 1</td><td>措法72の2・74・74の2 ${until('jutaku')}</td></tr>`;
+  h += `<tr><td>所有権移転（売買）土地</td><td class="rate">${B.iten_baibai.label}</td><td class="rate reduced-rate">${REDUCTIONS.land_sale.rateLabel}</td><td>措法72① ${until('land_sale')}</td></tr>`;
+  h += `<tr><td>所有権移転（売買）建物</td><td class="rate">${B.iten_baibai.label}</td><td class="rate reduced-rate">住宅用家屋 3<br>長期優良 1（一戸建て 2）<br>低炭素・買取再販 1</td><td>措法73・74・74の2・74の3 ${until('jutaku')}</td></tr>`;
+  h += `<tr><td>所有権移転（相続・相続人への遺贈・法人合併）</td><td class="rate">${B.iten_souzoku.label}</td><td class="rate reduced-rate">相続：①死亡した相続人名義の土地は非課税<br>②価額${MENZEI.tochi_max / 10000}万円以下の土地は非課税</td><td>措法84条の2の2①② ${until(MENZEI.limit)}</td></tr>`;
+  h += `<tr><td>所有権移転（共有物分割）</td><td class="rate">${B.iten_kyoyubutsu.label}</td><td class="rate">―</td><td>別表第一 一(二)ロ。分割前の持分に応じた部分のみ。超える部分は20/1000</td></tr>`;
+  h += `<tr><td>所有権移転（贈与・交換・財産分与・遺贈等）</td><td class="rate">${B.iten_zoyo.label}</td><td class="rate">―</td><td>別表第一 一(二)ハ</td></tr>`;
+  h += `<tr><td>抵当権設定（債権額）</td><td class="rate">${B.teitou.label}</td><td class="rate reduced-rate">住宅取得資金 ${REDUCTIONS.teitou_jutaku.rateLabel}</td><td>措法75 ${until('jutaku')}</td></tr>`;
+  h += `<tr><td>根抵当権設定（極度額）／極度額増額（増加額）</td><td class="rate">${B.neteitou.label}</td><td class="rate">―</td><td>別表第一 一(五)・登免法12①</td></tr>`;
+  h += `<tr><td>抵当権移転 債権譲渡等／相続・合併</td><td class="rate">${B.teitou_iten_joto.label}／${B.teitou_iten_souzoku.label}</td><td class="rate">―</td><td>別表第一 一(六)ロ／イ</td></tr>`;
+  h += `<tr><td>地上権・賃借権等 設定／配偶者居住権 設定</td><td class="rate">${B.chijou.label}／${B.haigusha.label}</td><td class="rate">―</td><td>別表第一 一(三)イ／(三の二)</td></tr>`;
+  h += `<tr><td>所有権移転仮登記 売買等／相続・合併・共有物分割</td><td class="rate">${B.kari_iten.label}／${B.kari_iten_souzoku.label}</td><td class="rate">軽減なし</td><td>別表第一 一(十二)ロ</td></tr>`;
+  h += `<tr><td>仮登記の本登記 売買等／相続等</td><td class="rate">${B.kari_honto.label}／${B.kari_honto_souzoku.label}</td><td class="rate reduced-rate">土地売買 ${REDUCTIONS.land_sale_honto.rateLabel}</td><td>登免法17①（仮登記分を控除）・措法72① ${until('land_sale')}</td></tr>`;
+  h += `<tr><td>追加設定（共同担保）</td><td colspan="2">不動産1個につき ${PU.tsuika.amount.toLocaleString()}円</td><td>登免法13②</td></tr>`;
+  h += `<tr><td>抵当権抹消</td><td colspan="2">不動産1個につき ${PU.masshou.amount.toLocaleString()}円（${PU.masshou.capOver}個超は申請1件 ${PU.masshou.cap.toLocaleString()}円）</td><td>別表第一 一(十五)</td></tr>`;
+  h += `<tr><td>住所・氏名変更／更正・変更登記／抵当権設定仮登記等</td><td colspan="2">不動産1個につき ${PU.henkou.amount.toLocaleString()}円（上限なし）</td><td>別表第一 一(十四)／(十二)ト</td></tr>`;
+  h += `<tr><td>地役権設定</td><td colspan="2">承役地1個につき ${PU.chiekiken.amount.toLocaleString()}円</td><td>別表第一 一(四)</td></tr>`;
+  t.innerHTML = h;
+  document.getElementById('refNote').innerHTML =
+    `${MASTER.rounding.note}` +
+    `相続免税の${MENZEI.tochi_max / 10000}万円判定は1筆ごと・持分を乗じた後の価額（法務局の案内）。` +
+    `金額欄は「1500万」「1億2500万」「１，５００，０００」の書き方でも読める。` +
+    `軽減の適用期限は改正で動く（マスタ確認日 ${MASTER_CHECKED}）。入力はこのブラウザに自動保存され、「クリア」で消える。` +
+    `未対応：${MASTER.unsupported_note || ''}`;
+  document.getElementById('footer').textContent =
+    `登録免許税計算ツール v3（2026-11-07）― オフライン対応 ― 税率マスタは見積スキル shiho-shoshi-estimate の toroku_menkyozei_master.json と共有 ― 新築基準表は${KIJUN_OFFICE} ${KIJUN_YEAR}版`;
+}
+
+// ============================================================
+// 入力ハンドラ
+// ============================================================
+function onDateChange(v) {
+  applyDate = v || todayISO();
+  cards.forEach(card => {
+    Object.keys(card.reduce).forEach(k => { if (!reductionUsable(card.reduce[k])) card.reduce[k] = 'none'; });
+    if (!reductionUsable(card.reduceAmount)) card.reduceAmount = 'none';
+  });
+  renderAll();
+}
+function onTypeChange(id, typeId) {
+  const card = findCard(id);
+  if (!card) return;
+  card.typeId = typeId;
+  initCardForType(card, TYPE_MAP[typeId]);
+  renderAll();
+}
+function onReduceChange(id, kind, v) {
+  const card = findCard(id); if (!card) return;
+  card.reduce[kind] = v; renderAll();
+}
+function onReduceAmountChange(id, v) {
+  const card = findCard(id); if (!card) return;
+  card.reduceAmount = v; renderAll();
+}
+function onMenzeiToggle(id, checked) {
+  const card = findCard(id); if (!card) return;
+  card.menzei = checked; renderAll();
+}
+function onMenzei1Toggle(id, checked) {
+  const card = findCard(id); if (!card) return;
+  card.menzei1 = checked; renderAll();
+}
+
+// 金額1つ（債権額・極度額）
+function onAmountInput(id, el) {
+  const card = findCard(id); if (!card) return;
+  const f = readAmountField(el);
+  const hadPending = !!card.pending;
+  card.amount = f.raw; card.pending = f.pending;
+  if (f.pending) { el.classList.add('pending'); el.value = f.display; }
+  else { el.classList.remove('pending'); formatInputKeepCursor(el, f.display); }
+  if (hadPending !== !!f.pending) renderAll(); else updateCard(id);
+  if (hadPending !== !!f.pending) refocus(id, null);
+}
+function onAmountBlur(id, el) {
+  const card = findCard(id); if (!card || !card.pending) return;
+  const raw = commitPending(card.pending);
+  card.amount = raw || ''; card.pending = '';
+  renderAll();
+}
+function onAmountKey(e, el, id) {
+  if (e.key === 'Escape') { el.value = ''; const c = findCard(id); if (c) { c.amount = ''; c.pending = ''; renderAll(); refocus(id, null); } }
+  if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+}
+function onCountInput(id, v) {
+  const card = findCard(id); if (card) { card.count = v; updateCard(id); }
+}
+
+// 物件行
+function addRow(id, kind) {
+  const card = findCard(id); if (!card) return;
+  card.rows.push(newRow(kind)); renderAll();
+  const rows = document.querySelectorAll(`.calc-card[data-id="${id}"] .prop-row .amount-input`);
+  if (rows.length) rows[rows.length - 1].focus();
+}
+function removeRow(id, rid) {
+  const card = findCard(id); if (!card || card.rows.length <= 1) return;
+  card.rows = card.rows.filter(r => r.rid !== rid); renderAll();
+}
+function onRowKind(id, rid, v) {
+  const card = findCard(id); const row = card && findRow(card, rid); if (!row) return;
+  row.kind = v; renderAll();
+}
+function onRowAmount(id, rid, el) {
+  const card = findCard(id); const row = card && findRow(card, rid); if (!row) return;
+  const f = readAmountField(el);
+  row.amount = f.raw; row.pending = f.pending;
+  if (f.pending) { el.classList.add('pending'); el.value = f.display; }
+  else { el.classList.remove('pending'); formatInputKeepCursor(el, f.display); }
+  updateCard(id);
+}
+function onRowBlur(id, rid, el) {
+  const card = findCard(id); const row = card && findRow(card, rid); if (!row || !row.pending) return;
+  const raw = commitPending(row.pending);
+  row.amount = raw || ''; row.pending = '';
+  el.classList.remove('pending');
+  el.value = amountDisplay(row.amount, '');
+  updateCard(id);
+}
+function onRowKey(e, el, id, rid) {
+  if (e.key === 'Escape') { el.value = ''; const card = findCard(id); const row = card && findRow(card, rid); if (row) { row.amount = ''; row.pending = ''; el.classList.remove('pending'); updateCard(id); } }
+  if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+}
+function onRowFrac(id, rid, which, v) {
+  const card = findCard(id); const row = card && findRow(card, rid); if (!row) return;
+  row[which] = toHalfWidth(v).replace(/[^0-9]/g, '');
+  updateCard(id);
+}
+function refocus(id, rid) {
+  const sel = rid ? `.calc-card[data-id="${id}"] .prop-row[data-rid="${rid}"] .amount-input` : `.calc-card[data-id="${id}"] .amount-input`;
+  const el = document.querySelector(sel);
+  if (el) { el.focus(); try { el.setSelectionRange(el.value.length, el.value.length); } catch (e) {} }
+}
+function toggleKijun(id, rid) {
+  const card = findCard(id); const row = card && findRow(card, rid); if (!row) return;
+  row.kijunOpen = !row.kijunOpen; renderAll();
+}
+function onKijun(id, rid, key, v) {
+  const card = findCard(id); const row = card && findRow(card, rid); if (!row) return;
+  if (key === 'kArea') v = toHalfWidth(v).replace(/[^0-9.]/g, '');
+  row[key] = v;
+  if (key === 'kKind' && !(KIJUN_TABLE[v] || {})[row.kStruct]) row.kStruct = '木造';
+  if (key === 'kArea') {
+    const cardEl = document.querySelector(`.calc-card[data-id="${id}"] .prop-row[data-rid="${rid}"]`);
+    const kijunEl = cardEl && cardEl.querySelector('.kijun');
+    if (kijunEl) {
+      const unit = (KIJUN_TABLE[row.kKind] || {})[row.kStruct];
+      const area = parseFloat(row.kArea);
+      const ok = unit && area > 0;
+      const price = ok ? Math.floor(unit * area) : 0;
+      kijunEl.querySelector('.k-calc').textContent = (unit ? unit.toLocaleString() + ' 円/㎡' : '単価なし') + (ok ? ` × ${area} ㎡ ＝ ${price.toLocaleString()} 円` : '');
+      const btn = kijunEl.querySelector('.k-apply');
+      btn.disabled = !ok;
+      btn.setAttribute('onclick', `applyKijun(${id}, ${rid}, ${price})`);
+    }
+    return;
+  }
+  renderAll();
+}
+function applyKijun(id, rid, price) {
+  const card = findCard(id); const row = card && findRow(card, rid); if (!row || !price) return;
+  row.amount = String(price); row.pending = '';
+  row.kijunOpen = false;
+  renderAll();
+  showToast(`評価額に ${price.toLocaleString()}円 を入れました（${KIJUN_YEAR}基準表）`);
+}
+
+// ============================================================
+// コピー・トースト
+// ============================================================
+function copyTax(id) {
+  const card = findCard(id); const r = card && calcTax(card); if (!r) return;
+  const str = r.allExempt ? `非課税（${joinLaws(exemptLaws(r))}）` : r.tax.toLocaleString() + '円';
+  copyRaw(str, str + '  コピーしました');
+}
+function copyRaw(text, toastMsg) {
+  const done = () => showToast(toastMsg || 'コピーしました');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+  } else fallbackCopy(text, done);
+}
+function fallbackCopy(text, done) {
+  const ta = document.createElement('textarea'); ta.value = text;
+  document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+  document.body.removeChild(ta); done();
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ============================================================
+// 自己テスト（起動時。失敗したらトーストで知らせる）
+// ============================================================
+function selfTest() {
+  const fails = [];
+  const savedNext = [nextId, nextRowId];
+  const mk = (typeId, mod) => { const c = newCard(typeId); if (mod) mod(c); return c; };
+  const t = (name, cond) => { if (!cond) fails.push(name); };
+  let c, r;
+  // 売買：土地12,345,678（15/1000）＋建物5,000,000（住宅3/1000）→ 185,175＋15,000＝200,175→200,100
+  c = mk('iten_baibai', c => { c.rows[0].amount = '12345678'; c.rows[1].amount = '5000000'; c.reduce.tatemono = 'iten_jutaku'; });
+  if (limitOK('land_sale') && limitOK('jutaku')) {
+    r = calcTax(c);
+    t('売買 土地課税標準', r.groups.find(g => g.kindLabel === '土地').base === 12345000);
+    t('売買 税額', r.tax === 200100);
+  }
+  c = mk('masshou', c => { c.count = '25'; }); t('抹消25個上限', calcTax(c).tax === 20000);
+  c = mk('masshou', c => { c.count = '20'; }); t('抹消20個', calcTax(c).tax === 20000);
+  c = mk('masshou', c => { c.count = '21'; }); t('抹消21個', calcTax(c).tax === 20000);
+  c = mk('henkou', c => { c.count = '25'; }); t('住所変更25個', calcTax(c).tax === 25000);
+  c = mk('iten_zoyo', c => { c.rows[0].amount = '10000001'; c.rows[0].num = '1'; c.rows[0].den = '2'; c.rows[1].amount = ''; });
+  r = calcTax(c); t('持分1/2 課税標準', r.groups[0].base === 5000000); t('持分1/2 税額', r.tax === 100000);
+  if (limitOK(MENZEI.limit)) {
+    c = mk('iten_souzoku', c => { c.rows[0].amount = '900000'; c.rows[1].amount = '500000'; c.rows.push(Object.assign(newRow('tochi'), { amount: '2000000' })); });
+    r = calcTax(c); t('相続免税 1筆除外', r.exemptRows.length === 1); t('相続 課税標準', r.groups[0].base === 2500000); t('相続 税額', r.tax === 10000);
+    c = mk('iten_souzoku', c => { c.rows[0].amount = '900000'; c.rows[1].amount = ''; });
+    r = calcTax(c); t('相続 全部免税', r.allExempt && r.tax === 0);
+  }
+  c = mk('teitou', c => { c.amount = '100000'; }); t('最低1,000円', calcTax(c).tax === 1000);
+  // 第3弾：種類の追加・免税①
+  if (limitOK(MENZEI.limit)) {
+    c = mk('iten_souzoku', c => { c.menzei1 = true; c.rows[0].amount = '30000000'; c.rows[1].amount = '5000000'; });
+    r = calcTax(c); t('免税① 土地除外', r.exemptRows.length === 1 && r.exemptRows[0].item === 1); t('免税① 建物課税', r.tax === 20000);
+    c = mk('iten_souzoku', c => { c.menzei1 = true; c.rows[0].amount = '30000000'; c.rows[1].amount = ''; });
+    r = calcTax(c); t('免税① 全部', r.allExempt && r.tax === 0);
+  }
+  c = mk('teitou_iten_joto', c => { c.amount = '30000000'; }); t('抵当権移転 債権譲渡 2/1000', calcTax(c).tax === 60000);
+  c = mk('teitou_iten_souzoku', c => { c.amount = '30000000'; }); t('抵当権移転 相続 1/1000', calcTax(c).tax === 30000);
+  c = mk('kyokudo_zogaku', c => { c.amount = '10000000'; }); t('極度額増額 4/1000', calcTax(c).tax === 40000);
+  c = mk('kari_iten', c => { c.rows[0].amount = '12345678'; c.rows[1].amount = ''; }); t('所有権移転仮登記 10/1000', calcTax(c).tax === 123400);
+  c = mk('kari_iten_souzoku', c => { c.rows[0].amount = '12345678'; c.rows[1].amount = ''; }); t('仮登記 相続 2/1000', calcTax(c).tax === 24600);
+  if (limitOK('land_sale')) { c = mk('kari_honto', c => { c.rows[0].amount = '12345678'; c.rows[1].amount = ''; }); t('本登記 土地売買 5/1000', calcTax(c).tax === 61700); }
+  c = mk('kari_honto', c => { c.rows[0].amount = ''; c.rows[1].amount = '5000000'; }); t('本登記 建物 10/1000', calcTax(c).tax === 50000);
+  c = mk('kari_honto_souzoku', c => { c.rows[0].amount = '12345678'; c.rows[1].amount = ''; }); t('本登記 相続 2/1000', calcTax(c).tax === 24600);
+  c = mk('chijou', c => { c.rows[0].amount = '10000000'; c.rows[1].amount = ''; }); t('賃借権設定 10/1000', calcTax(c).tax === 100000);
+  c = mk('haigusha', c => { c.rows[0].amount = '10000000'; }); t('配偶者居住権 2/1000', calcTax(c).tax === 20000);
+  c = mk('iten_kyoyubutsu', c => { c.rows[0].amount = '10000000'; c.rows[1].amount = ''; }); t('共有物分割 4/1000', calcTax(c).tax === 40000);
+  c = mk('chiekiken', c => { c.count = '3'; }); t('地役権 1,500×3', calcTax(c).tax === 4500);
+  c = mk('kousei', c => { c.count = '2'; }); t('更正 1,000×2', calcTax(c).tax === 2000);
+  c = mk('kari_teitou', c => { c.count = '2'; }); t('抵当権設定仮登記 1,000×2', calcTax(c).tax === 2000);
+  t('和暦', warekiDate('2026-11-07') === '令和8年11月7日');
+  if (limitOK('jutaku')) { c = mk('hozon', c => { c.rows[0].amount = '10000000'; c.reduce.tatemono = 'hozon_jutaku'; }); t('保存 住宅1.5', calcTax(c).tax === 15000); }
+  // 万・億の読み取り
+  t('1500万', parseJa('1500万') === 15000000);
+  t('1億2500万', parseJa('1億2500万') === 125000000);
+  t('1500.5万', parseJa('1500.5万') === 15005000);
+  t('2億', parseJa('2億') === 200000000);
+  t('全角１，５００万', parseJa('１，５００万') === 15000000);
+  t('万なしはnull', parseJa('1500') === null);
+  nextId = savedNext[0]; nextRowId = savedNext[1];
+  return fails;
+}
+
+// Init
+(function init() {
+  document.getElementById('applyDate').value = applyDate;
+  if (!loadState()) cards = [newCard('iten_baibai')];
+  renderAll();
+  const fails = selfTest();
+  if (fails.length) {
+    setTimeout(() => showToast('自己テスト失敗: ' + fails.join(' / ')), 300);
+    console.error('selfTest failed', fails);
+  }
+})();
+</script>
+<script>
+// HP設置版のみ：オフライン用 Service Worker（scope はこのディレクトリだけ）
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+</script>
+</body></html>

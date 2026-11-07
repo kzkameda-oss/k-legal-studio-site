@@ -1,0 +1,5 @@
+{
+  "_comment": "deploy.config.json にコピーして使う。method は git（GitHub→Cloudflare Pages連携）か wrangler（直接アップロード）",
+  "method": "git",
+  "project": "k-legal-studio-site"
+}

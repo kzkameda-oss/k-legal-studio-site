@@ -1,0 +1,4 @@
+# Cloudflare Pages 用ヘッダ（Pages が読み取るだけで、このファイル自体は配信されない）
+# /tools/ 配下は内部ツール置き場。検索に出さない（robots.txt で Disallow するとパスが露出するのでヘッダで指定）
+/tools/*
+  X-Robots-Tag: noindex, nofollow
