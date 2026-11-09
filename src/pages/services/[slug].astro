@@ -12,6 +12,28 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content } = await render(entry);
 const all = (await getCollection('services')).sort((a, b) => a.data.order - b.data.order);
+const faq = entry.data.faq;
+const areaServed = site.areaServed.map((name) => ({ '@type': 'AdministrativeArea', name }));
+// 検索エンジン向けの補助情報：このページのサービスと、よくあるご質問（あれば）
+const pageJsonLd: Record<string, unknown>[] = [{
+  '@type': 'Service',
+  name: entry.data.title,
+  serviceType: entry.data.title,
+  description: entry.data.summary,
+  url: `${site.domain}/services/${entry.id}/`,
+  provider: { '@id': `${site.domain}/#office` },
+  areaServed,
+}];
+if (faq.length > 0) {
+  pageJsonLd.push({
+    '@type': 'FAQPage',
+    mainEntity: faq.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  });
+}
 ---
 <Base
   title={entry.data.title}
@@ -21,15 +43,7 @@ const all = (await getCollection('services')).sort((a, b) => a.data.order - b.da
     { name: '業務案内', href: '/services/' },
     { name: entry.data.title, href: `/services/${entry.id}/` },
   ]}
-  jsonLd={[{
-    '@type': 'Service',
-    name: entry.data.title,
-    serviceType: entry.data.title,
-    description: entry.data.summary,
-    url: `${site.domain}/services/${entry.id}/`,
-    provider: { '@id': `${site.domain}/#office` },
-    areaServed: site.areaServed.map((name) => ({ '@type': 'AdministrativeArea', name })),
-  }]}
+  jsonLd={pageJsonLd}
 >
   <div class="page-hero">
     <div class="container">
@@ -52,6 +66,24 @@ const all = (await getCollection('services')).sort((a, b) => a.data.order - b.da
       <article class="prose service-body">
         <p class="service-summary">{entry.data.summary}</p>
         <Content />
+        {faq.length > 0 && (
+          <section class="faq" aria-labelledby="faq-heading">
+            <h2 id="faq-heading">よくあるご質問</h2>
+            <dl>
+              {faq.map((f) => (
+                <div class="faq__item">
+                  <dt><span class="faq__mark" aria-hidden="true">Q</span>{f.q}</dt>
+                  <dd><span class="faq__mark faq__mark--a" aria-hidden="true">A</span>{f.a}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
+        {entry.data.updated && (
+          <p class="note service-updated">
+            ※ このページは{entry.data.updated}時点の法令と各府県の手引きに基づいています。申請先や時期により取扱いが異なる場合がありますので、個別の事情は事前にご相談ください。
+          </p>
+        )}
         <div class="service-contact">
           <p><strong>{entry.data.title}のご相談は無料です。</strong>お気軽にお問い合わせください。</p>
           <div class="service-contact__actions">
@@ -84,6 +116,19 @@ const all = (await getCollection('services')).sort((a, b) => a.data.order - b.da
 <style>
   .service-summary { font-size: 1.05rem; padding: 18px 22px; background: var(--bg-white); border-left: 4px solid var(--navy); border-radius: 0 var(--radius) var(--radius) 0; margin-bottom: 2em; }
   .service-body :global(table) { background: var(--bg-white); }
+  /* 表の左端の列（項目名）がスマホ幅で1文字ずつ折れないようにする */
+  .service-body :global(td:first-child) { min-width: 6.5em; }
+  @media (max-width: 600px) {
+    .service-body :global(table) { font-size: 0.9rem; }
+    .service-body :global(th), .service-body :global(td) { padding: 0.6em 0.6em; }
+  }
+  .faq dl { margin: 0; }
+  .faq__item { background: var(--bg-white); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 12px; }
+  .faq__item dt { font-weight: 700; color: var(--navy); display: grid; grid-template-columns: 28px 1fr; gap: 8px; }
+  .faq__item dd { margin: 10px 0 0; display: grid; grid-template-columns: 28px 1fr; gap: 8px; }
+  .faq__mark { font-family: var(--font-serif); font-weight: 700; color: var(--gold); line-height: 1.6; }
+  .faq__mark--a { color: var(--navy); }
+  .service-updated { margin-top: 2em; }
   .service-contact { margin-top: 3em; padding: 26px; background: var(--bg-white); border: 1px solid var(--line); border-radius: var(--radius); }
   .service-contact p { margin-bottom: 14px; }
   .service-contact__actions { display: flex; gap: 12px; flex-wrap: wrap; }

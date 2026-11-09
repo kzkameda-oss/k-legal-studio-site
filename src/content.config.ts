@@ -13,6 +13,10 @@ const services = defineCollection({
     order: z.number(),
     keywords: z.array(z.string()).default([]),
     featured: z.boolean().default(false),
+    // よくあるご質問。本文の後ろに表示し、検索エンジン向けの補助情報（FAQPage）にも出す。
+    faq: z.array(z.object({ q: z.string(), a: z.string() })).default([]),
+    // 内容を確認した時点（例：2026年11月）。ページ末尾に「〜時点の法令・手引きに基づく」と表示する。
+    updated: z.string().optional(),
   }),
 });
 

@@ -66,6 +66,8 @@ th { background: var(--bg-soft); font-weight: 700; white-space: nowrap; }
 
 .grid { display: grid; gap: 24px; }
 .grid--2 { grid-template-columns: repeat(2, 1fr); }
+/* 2列でカードが奇数枚のとき、最後の1枚を横いっぱいに広げて空きを作らない */
+.grid--2 > :last-child:nth-child(odd) { grid-column: 1 / -1; }
 .grid--3 { grid-template-columns: repeat(3, 1fr); }
 .grid--4 { grid-template-columns: repeat(4, 1fr); }
 @media (max-width: 860px) { .grid--3, .grid--4 { grid-template-columns: repeat(2, 1fr); } }
