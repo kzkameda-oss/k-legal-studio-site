@@ -13,7 +13,24 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 const all = (await getCollection('services')).sort((a, b) => a.data.order - b.data.order);
 ---
-<Base title={entry.data.title} description={entry.data.summary}>
+<Base
+  title={entry.data.title}
+  seoTitle={entry.data.seoTitle}
+  description={`${site.locality}西大寺の${site.name}。${entry.data.summary}`}
+  breadcrumbs={[
+    { name: '業務案内', href: '/services/' },
+    { name: entry.data.title, href: `/services/${entry.id}/` },
+  ]}
+  jsonLd={[{
+    '@type': 'Service',
+    name: entry.data.title,
+    serviceType: entry.data.title,
+    description: entry.data.summary,
+    url: `${site.domain}/services/${entry.id}/`,
+    provider: { '@id': `${site.domain}/#office` },
+    areaServed: site.areaServed.map((name) => ({ '@type': 'AdministrativeArea', name })),
+  }]}
+>
   <div class="page-hero">
     <div class="container">
       <span class="en">Services</span>

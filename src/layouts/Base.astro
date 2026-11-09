@@ -11,12 +11,71 @@ interface Props {
   home?: boolean;
   /** 検索に出さないページ（404 など）で true。canonical も出さない */
   noindex?: boolean;
+  /** 検索結果に出す題名（地域名入り）。指定すると「seoTitle｜事務所名」になる */
+  seoTitle?: string;
+  /** パンくず（ホームの次から）。省略時は「ホーム > title」 */
+  breadcrumbs?: { name: string; href: string }[];
+  /** ページ固有の構造化データ（検索エンジン向けの補助情報）を足すとき */
+  jsonLd?: Record<string, unknown>[];
 }
-const { title, description = site.description, home = false, noindex = false } = Astro.props;
-const fullTitle = home || !title ? `${site.name}｜奈良市の許認可申請・建設業許可の行政書士` : `${title}｜${site.name}`;
+const { title, description = site.description, home = false, noindex = false, seoTitle, breadcrumbs, jsonLd = [] } = Astro.props;
+// 題名：トップ＝事務所名＋説明／seoTitle あり＝地域名入りの題名＋事務所名／それ以外＝ページ名＋事務所名（奈良市）
+const fullTitle = home || !title
+  ? `${site.name}｜奈良市の許認可申請・建設業許可の行政書士`
+  : seoTitle
+    ? `${seoTitle}｜${site.name}`
+    : `${title}｜${site.name}（${site.locality}）`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 // SNS・LINE で共有したときの画像（public/og.png、1200×630。scripts/make_og_image.py で作る）
 const ogImage = new URL('/og.png', Astro.site);
+
+// ---- 構造化データ（検索エンジンに事務所・ページの位置づけを伝える） ----
+const officeId = `${site.domain}/#office`;
+const office = {
+  '@context': 'https://schema.org',
+  '@type': 'LegalService',
+  '@id': officeId,
+  name: site.name,
+  url: site.domain,
+  image: ogImage.href,
+  telephone: `+81-${site.tel.replace(/^0/, '')}`,
+  faxNumber: `+81-${site.fax.replace(/^0/, '')}`,
+  email: site.email,
+  address: {
+    '@type': 'PostalAddress',
+    postalCode: site.postal.replace('〒', ''),
+    addressRegion: '奈良県',
+    addressLocality: '奈良市',
+    streetAddress: '西大寺南町16番19号',
+    addressCountry: 'JP',
+  },
+  areaServed: site.areaServed.map((name) => ({ '@type': 'AdministrativeArea', name })),
+  openingHoursSpecification: [{
+    '@type': 'OpeningHoursSpecification',
+    dayOfWeek: site.openingHours.days,
+    opens: site.openingHours.opens,
+    closes: site.openingHours.closes,
+  }],
+  founder: { '@type': 'Person', name: site.representative, jobTitle: site.representativeTitle },
+};
+const structured: Record<string, unknown>[] = [office];
+if (home) {
+  structured.push({ '@context': 'https://schema.org', '@type': 'WebSite', name: site.name, url: site.domain, inLanguage: 'ja' });
+}
+if (!home && !noindex && title) {
+  const trail = [{ name: 'ホーム', href: '/' }, ...(breadcrumbs ?? [{ name: title, href: Astro.url.pathname }])];
+  structured.push({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: trail.map((b, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: b.name,
+      item: new URL(b.href, Astro.site).href,
+    })),
+  });
+}
+for (const extra of jsonLd) structured.push({ '@context': 'https://schema.org', ...extra });
 ---
 <!doctype html>
 <html lang="ja">
@@ -46,24 +105,9 @@ const ogImage = new URL('/og.png', Astro.site);
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@600;700&display=swap"
       rel="stylesheet"
     />
-    <script type="application/ld+json" set:html={JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'LegalService',
-      name: site.name,
-      url: site.domain,
-      telephone: `+81-${site.tel.replace(/^0/, '')}`,
-      email: site.email,
-      address: {
-        '@type': 'PostalAddress',
-        postalCode: site.postal.replace('〒', ''),
-        addressRegion: '奈良県',
-        addressLocality: '奈良市',
-        streetAddress: '西大寺南町16番19号',
-        addressCountry: 'JP',
-      },
-      areaServed: '奈良県',
-      founder: { '@type': 'Person', name: site.representative, jobTitle: site.representativeTitle },
-    })} />
+    {structured.map((data) => (
+      <script type="application/ld+json" set:html={JSON.stringify(data)} />
+    ))}
   </head>
   <body>
     <a class="skip sr-only" href="#main">本文へ移動</a>

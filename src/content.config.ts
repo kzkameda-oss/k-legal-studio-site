@@ -6,6 +6,8 @@ const services = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/services' }),
   schema: z.object({
     title: z.string(),
+    // 検索結果に出る題名（地域名入り）。無ければ title＋「（奈良市）」付きの事務所名になる。
+    seoTitle: z.string().optional(),
     catch: z.string(),
     summary: z.string(),
     order: z.number(),

@@ -16,6 +16,12 @@ export const site = {
   mobileHref: 'tel:07018351560',
   email: 'kz.kameda@k-legal-studio.com',
   hours: '平日 9:00〜17:00（土日祝は事前予約制）',  // 2026-11-08 オーナー確認済
+  // 検索エンジン向けの受付時間（hours を変えたらここも直す）
+  openingHours: { days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '09:00', closes: '17:00' },
+  // 検索エンジン向けの対応エリア（area を変えたらここも直す）
+  areaServed: ['奈良県', '京都府', '大阪府'],
+  // 題名の末尾に付ける所在地（他県の同名事務所と区別するため）
+  locality: '奈良市',
   access: '近鉄「大和西大寺」駅南口より徒歩約5分（駐車場あり）',  // 2026-11-08 オーナー確認済
   area: '奈良県全域・京都府南部・大阪府（その他の地域もご相談ください）',  // 2026-11-08 オーナー確認済
   // お問い合わせフォームの送信先（Formspree等のURL）。空ならフォームは表示せず電話・メール案内のみ。
