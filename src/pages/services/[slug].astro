@@ -121,6 +121,13 @@ if (faq.length > 0) {
   @media (max-width: 600px) {
     .service-body :global(table) { font-size: 0.9rem; }
     .service-body :global(th), .service-body :global(td) { padding: 0.6em 0.6em; }
+    /* 3列までの表：見出しも折り返して本文幅に収める */
+    .service-body :global(th) { white-space: normal; }
+    /* 4列以上の表：列を潰さず、表の中だけ横にスクロールできるようにする */
+    .service-body :global(table:has(tr > :nth-child(4))) { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .service-body :global(table:has(tr > :nth-child(4)) th),
+    .service-body :global(table:has(tr > :nth-child(4)) td) { min-width: 9em; }
+    .service-body :global(table:has(tr > :nth-child(4)) th) { white-space: nowrap; }
   }
   .faq dl { margin: 0; }
   .faq__item { background: var(--bg-white); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 12px; }
