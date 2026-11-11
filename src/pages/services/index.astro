@@ -19,7 +19,7 @@ const services = (await getCollection('services')).sort((a, b) => a.data.order -
           <a class="card" href={`/services/${s.id}/`}>
             <h3>{s.data.title}</h3>
             <p>{s.data.summary}</p>
-            <span class="more">詳しく見る →</span>
+            <span class="more">詳しく見る</span>
           </a>
         ))}
       </div>
