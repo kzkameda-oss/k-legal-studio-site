@@ -1,0 +1,47 @@
+---
+import Base from '../../layouts/Base.astro';
+import Cta from '../../components/Cta.astro';
+import { getArticles, jaDate } from '../../data/articles';
+const articles = await getArticles();
+---
+<Base
+  title="解説記事"
+  seoTitle="建設業許可・経審・農地転用の解説記事（奈良）"
+  description="奈良市西大寺の亀田行政書士事務所による解説記事。建設業許可・決算変更届・経営事項審査・農地転用など、許認可の期限や手続きの進め方を、法令と申請先の手引きに基づいて解説します。"
+>
+  <div class="page-hero">
+    <div class="container">
+      <span class="en">Articles</span>
+      <h1>解説記事</h1>
+      <p>許認可の期限・手続きの進め方を、法令と申請先の手引きに基づいて解説します。</p>
+    </div>
+  </div>
+  <section class="section">
+    <div class="container">
+      {articles.length === 0 ? (
+        <p>記事を準備しています。</p>
+      ) : (
+        <ul class="article-list">
+          {articles.map((a) => (
+            <li>
+              <a class="card article-card" href={`/articles/${a.id}/`}>
+                <time datetime={a.data.published}>{jaDate(a.data.published)}</time>
+                <h2>{a.data.title}</h2>
+                <p>{a.data.description}</p>
+                <span class="more">続きを読む →</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </section>
+  <Cta />
+</Base>
+
+<style>
+  .article-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 20px; max-width: 860px; }
+  .article-list li { margin: 0; }
+  .article-card h2 { font-size: 1.2rem; margin: 6px 0 8px; border: 0; padding: 0; }
+  .article-card time { font-size: 0.85rem; color: var(--muted); }
+</style>

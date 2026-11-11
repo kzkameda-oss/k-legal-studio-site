@@ -3,7 +3,10 @@ import Base from '../layouts/Base.astro';
 import Cta from '../components/Cta.astro';
 import { site } from '../data/site';
 import { getCollection } from 'astro:content';
+import { getArticles } from '../data/articles';
 
+// 新しい解説記事（最大4件）
+const articles = (await getArticles()).slice(0, 4);
 const services = (await getCollection('services')).sort((a, b) => a.data.order - b.data.order);
 const featured = services.filter((s) => s.data.featured);
 const rest = services.filter((s) => !s.data.featured);
@@ -148,6 +151,28 @@ const strengths = [
       </div>
     </div>
   </section>
+
+  {articles.length > 0 && (
+    <section class="section section--alt">
+      <div class="container">
+        <div class="section-head">
+          <span class="en">Articles</span>
+          <h2>解説記事</h2>
+          <p>許認可の期限や手続きの進め方を、法令と申請先の手引きに基づいて解説しています。</p>
+        </div>
+        <div class="grid grid--2">
+          {articles.map((a) => (
+            <a class="card" href={`/articles/${a.id}/`}>
+              <h3>{a.data.title}</h3>
+              <p>{a.data.description}</p>
+              <span class="more">続きを読む →</span>
+            </a>
+          ))}
+        </div>
+        <p class="center" style="margin-top:28px"><a class="btn btn--outline" href="/articles/">解説記事の一覧</a></p>
+      </div>
+    </section>
+  )}
 
   <Cta />
 </Base>

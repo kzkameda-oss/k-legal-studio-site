@@ -1,0 +1,169 @@
+---
+import Base from '../../layouts/Base.astro';
+import Cta from '../../components/Cta.astro';
+import { site } from '../../data/site';
+import { getArticles, jaDate } from '../../data/articles';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const articles = await getArticles();
+  return articles.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const services = await getCollection('services');
+const related = d.related
+  .map((id) => services.find((s) => s.id === id))
+  .filter((s): s is NonNullable<typeof s> => Boolean(s));
+const others = (await getArticles()).filter((a) => a.id !== entry.id).slice(0, 5);
+const url = `${site.domain}/articles/${entry.id}/`;
+
+// 検索エンジン向けの補助情報：記事と、よくあるご質問（あれば）
+const pageJsonLd: Record<string, unknown>[] = [{
+  '@type': 'Article',
+  headline: d.title,
+  description: d.description,
+  datePublished: d.published,
+  dateModified: d.updated ?? d.published,
+  inLanguage: 'ja',
+  mainEntityOfPage: url,
+  image: `${site.domain}/og.png`,
+  author: { '@type': 'Person', name: site.representative, jobTitle: site.representativeTitle },
+  publisher: { '@id': `${site.domain}/#office` },
+}];
+if (d.faq.length > 0) {
+  pageJsonLd.push({
+    '@type': 'FAQPage',
+    mainEntity: d.faq.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  });
+}
+---
+<Base
+  title={d.title}
+  seoTitle={d.seoTitle}
+  description={d.description}
+  breadcrumbs={[
+    { name: '解説記事', href: '/articles/' },
+    { name: d.title, href: `/articles/${entry.id}/` },
+  ]}
+  jsonLd={pageJsonLd}
+>
+  <div class="page-hero">
+    <div class="container">
+      <span class="en">Articles</span>
+      <h1>{d.title}</h1>
+      <p class="article-meta">
+        <time datetime={d.published}>{jaDate(d.published)} 公開</time>
+        {d.updated && <> ／ <time datetime={d.updated}>{jaDate(d.updated)} 更新</time></>}
+        ／ {site.representativeTitle} {site.representative}
+      </p>
+    </div>
+  </div>
+  <div class="container">
+    <nav class="breadcrumb" aria-label="パンくずリスト">
+      <ol>
+        <li><a href="/">ホーム</a></li>
+        <li><a href="/articles/">解説記事</a></li>
+        <li aria-current="page">{d.title}</li>
+      </ol>
+    </nav>
+  </div>
+  <section class="section" style="padding-top:36px">
+    <div class="container layout-2col">
+      <article class="prose service-body">
+        <p class="service-summary">{d.description}</p>
+        <Content />
+        {d.faq.length > 0 && (
+          <section class="faq" aria-labelledby="faq-heading">
+            <h2 id="faq-heading">よくあるご質問</h2>
+            <dl>
+              {d.faq.map((f) => (
+                <div class="faq__item">
+                  <dt><span class="faq__mark" aria-hidden="true">Q</span>{f.q}</dt>
+                  <dd><span class="faq__mark faq__mark--a" aria-hidden="true">A</span>{f.a}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
+        <p class="note service-updated">
+          ※ この記事は{d.basis}時点の法令と申請先の公表資料に基づいています。手続きの取扱いは申請先や時期により異なる場合がありますので、個別の事情は事前にご相談ください。
+        </p>
+        {related.length > 0 && (
+          <div class="related">
+            <p class="related__heading">関連する業務案内</p>
+            <ul>
+              {related.map((s) => (
+                <li><a href={`/services/${s.id}/`}>{s.data.title}</a></li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <div class="service-contact">
+          <p><strong>ご相談は無料です。</strong>お気軽にお問い合わせください。</p>
+          <div class="service-contact__actions">
+            <a class="btn btn--primary" href="/contact/">お問い合わせ</a>
+            <a class="btn btn--outline" href={site.telHref}>TEL {site.tel}</a>
+          </div>
+        </div>
+      </article>
+      <aside class="sidebar">
+        {others.length > 0 && (
+          <div class="side-box">
+            <h3>ほかの解説記事</h3>
+            <ul>
+              {others.map((a) => (
+                <li><a href={`/articles/${a.id}/`}>{a.data.title}</a></li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <div class="side-box side-box--tel">
+          <h3>お問い合わせ</h3>
+          <p class="side-tel"><a href={site.telHref}>{site.tel}</a></p>
+          <p class="note">{site.hours}</p>
+          <a class="btn btn--primary" href="/contact/" style="width:100%">メールで相談する</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+  <Cta />
+</Base>
+
+<style>
+  .article-meta { font-size: 0.9rem; }
+  .service-summary { font-size: 1.05rem; padding: 18px 22px; background: var(--bg-white); border-left: 4px solid var(--navy); border-radius: 0 var(--radius) var(--radius) 0; margin-bottom: 2em; }
+  .service-body :global(table) { background: var(--bg-white); }
+  .service-body :global(td:first-child) { min-width: 6.5em; }
+  @media (max-width: 600px) {
+    .service-body :global(table) { font-size: 0.9rem; }
+    .service-body :global(th), .service-body :global(td) { padding: 0.6em 0.6em; }
+    .service-body :global(th) { white-space: normal; }
+    .service-body :global(table:has(tr > :nth-child(4))) { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .service-body :global(table:has(tr > :nth-child(4)) th),
+    .service-body :global(table:has(tr > :nth-child(4)) td) { min-width: 9em; }
+    .service-body :global(table:has(tr > :nth-child(4)) th) { white-space: nowrap; }
+  }
+  .faq dl { margin: 0; }
+  .faq__item { background: var(--bg-white); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 12px; }
+  .faq__item dt { font-weight: 700; color: var(--navy); display: grid; grid-template-columns: 28px 1fr; gap: 8px; }
+  .faq__item dd { margin: 10px 0 0; display: grid; grid-template-columns: 28px 1fr; gap: 8px; }
+  .faq__mark { font-family: var(--font-serif); font-weight: 700; color: var(--gold); line-height: 1.6; }
+  .faq__mark--a { color: var(--navy); }
+  .service-updated { margin-top: 2em; }
+  .related { margin-top: 2em; padding: 18px 22px; background: var(--bg-soft); border-radius: var(--radius); }
+  .related__heading { font-weight: 700; margin-bottom: 8px; }
+  .related ul { margin: 0; }
+  .service-contact { margin-top: 3em; padding: 26px; background: var(--bg-white); border: 1px solid var(--line); border-radius: var(--radius); }
+  .service-contact p { margin-bottom: 14px; }
+  .service-contact__actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .side-tel { margin: 0 0 4px; }
+  .side-tel a { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 700; text-decoration: none; }
+  .side-box--tel .note { margin-bottom: 14px; }
+</style>

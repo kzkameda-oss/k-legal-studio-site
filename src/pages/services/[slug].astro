@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import Cta from '../../components/Cta.astro';
 import { site } from '../../data/site';
 import { getCollection, render } from 'astro:content';
+import { getArticles } from '../../data/articles';
 
 export async function getStaticPaths() {
   const services = await getCollection('services');
@@ -13,6 +14,8 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 const all = (await getCollection('services')).sort((a, b) => a.data.order - b.data.order);
 const faq = entry.data.faq;
+// この業務に関連する解説記事（記事の frontmatter の related にこのページのファイル名があるもの）
+const articles = (await getArticles()).filter((a) => a.data.related.includes(entry.id));
 const areaServed = site.areaServed.map((name) => ({ '@type': 'AdministrativeArea', name }));
 // 検索エンジン向けの補助情報：このページのサービスと、よくあるご質問（あれば）
 const pageJsonLd: Record<string, unknown>[] = [{
@@ -84,6 +87,16 @@ if (faq.length > 0) {
             ※ このページは{entry.data.updated}時点の法令と各府県の手引きに基づいています。申請先や時期により取扱いが異なる場合がありますので、個別の事情は事前にご相談ください。
           </p>
         )}
+        {articles.length > 0 && (
+          <div class="related">
+            <p class="related__heading">関連する解説記事</p>
+            <ul>
+              {articles.map((a) => (
+                <li><a href={`/articles/${a.id}/`}>{a.data.title}</a></li>
+              ))}
+            </ul>
+          </div>
+        )}
         <div class="service-contact">
           <p><strong>{entry.data.title}のご相談は無料です。</strong>お気軽にお問い合わせください。</p>
           <div class="service-contact__actions">
@@ -136,6 +149,9 @@ if (faq.length > 0) {
   .faq__mark { font-family: var(--font-serif); font-weight: 700; color: var(--gold); line-height: 1.6; }
   .faq__mark--a { color: var(--navy); }
   .service-updated { margin-top: 2em; }
+  .related { margin-top: 2em; padding: 18px 22px; background: var(--bg-soft); border-radius: var(--radius); }
+  .related__heading { font-weight: 700; margin-bottom: 8px; }
+  .related ul { margin: 0; }
   .service-contact { margin-top: 3em; padding: 26px; background: var(--bg-white); border: 1px solid var(--line); border-radius: var(--radius); }
   .service-contact p { margin-bottom: 14px; }
   .service-contact__actions { display: flex; gap: 12px; flex-wrap: wrap; }
