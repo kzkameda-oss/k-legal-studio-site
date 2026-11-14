@@ -1,4 +1,7 @@
 /*
+ * 2026-11-14 配色変更：サンド地×ティール1色×墨文字（参考：sitepick.jp/demo/professional-will-01/）
+ *   地はサンド、白は交互のセクションとカードに回す。色が付くのはティールだけ。見出しは墨色。
+ *   変数名 --navy / --navy-2 は各所から参照されているので名前を残し、値をティールに差し替えた。
  * 2026-11-11 デザイン刷新：紺×白×ゴシック（参考：altbase.co.jp/site/administrative/）
  * 旧デザイン（ベージュ×金×明朝）の変数名 --gold / --gold-light / --font-serif / --bg-soft は
  * 各ページの <style> から参照されているため名前を残し、値だけ新デザインに差し替えている。
@@ -6,25 +9,29 @@
  *   --font-serif → 見出し用。いまは明朝ではなくゴシック太字
  */
 :root {
-  --navy: #0b213d;
-  --navy-deep: #081a31;
-  --navy-2: #14335c;
-  --accent: #2f5c8f;
-  --accent-light: #cfdcec;
+  --teal: #2f6f73;
+  --navy: var(--teal);
+  --navy-deep: #245659;
+  --navy-2: #275e62;
+  --accent: var(--teal);
+  --accent-light: #d6e7e5;
   --gold: var(--accent);
   --gold-light: var(--accent-light);
-  --ink: #1e2a3a;
-  --muted: #5b6676;
-  --line: #e3e8ef;
-  --bg: #ffffff;
+  --ink: #2b2b2b;
+  --muted: #6b6b66;
+  --line: #e2dcd0;
+  --sand: #f5f1e8;
+  --sand-deep: #ece6da;
+  --pale: #faf8f3;
+  --bg: var(--sand);
   --bg-white: #ffffff;
-  --bg-soft: #f4f6f9;
+  --bg-soft: #ffffff;
   --marker: #fff4c2;
   --max: 1120px;
   --radius: 8px;
   --radius-lg: 14px;
-  --shadow: 0 14px 34px rgba(11, 33, 61, 0.10);
-  --shadow-btn: 0 10px 26px rgba(11, 33, 61, 0.20);
+  --shadow: 0 14px 34px rgba(43, 43, 43, 0.08);
+  --shadow-btn: 0 10px 26px rgba(47, 111, 115, 0.22);
   --font-sans: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
   --font-serif: var(--font-sans);
   --font-en: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
@@ -45,14 +52,15 @@ body {
 img { max-width: 100%; height: auto; display: block; }
 a { color: var(--navy-2); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 a:hover { color: var(--accent); }
-h1, h2, h3, h4 { font-family: var(--font-sans); font-weight: 700; line-height: 1.45; margin: 0; color: var(--navy); letter-spacing: 0.04em; }
+h1, h2, h3, h4 { font-family: var(--font-sans); font-weight: 700; line-height: 1.45; margin: 0; color: var(--ink); letter-spacing: 0.04em; }
 p { margin: 0 0 1em; }
 ul, ol { padding-left: 1.4em; margin: 0 0 1em; }
 li { margin-bottom: 0.3em; }
-strong { color: var(--navy); }
+strong { color: var(--ink); }
 table { border-collapse: collapse; width: 100%; margin: 0 0 1.5em; font-size: 0.95rem; }
 th, td { border: 1px solid var(--line); padding: 0.75em 1em; text-align: left; vertical-align: top; }
-th { background: var(--bg-soft); color: var(--navy); font-weight: 700; white-space: nowrap; }
+td { background: var(--bg-white); }
+th { background: var(--sand-deep); color: var(--ink); font-weight: 700; white-space: nowrap; }
 .table-wrap { overflow-x: auto; margin: 0 0 1.5em; }
 .table-wrap table { margin: 0; min-width: 520px; }
 
@@ -124,18 +132,18 @@ a.card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-co
 a.card:hover .more::after { transform: translateX(4px); }
 
 /* 下層ページの見出し帯：白地に英字ラベル＋大見出し、下に薄い罫 */
-.page-hero { background: linear-gradient(180deg, var(--bg-soft) 0%, #fff 100%); color: var(--ink); padding: 72px 0 56px; border-bottom: 1px solid var(--line); }
+.page-hero { background: linear-gradient(180deg, var(--pale) 0%, var(--sand) 100%); color: var(--ink); padding: 72px 0 56px; border-bottom: 1px solid var(--line); }
 .page-hero .en {
   display: flex; align-items: center; gap: 14px; font-family: var(--font-en); font-size: 0.82rem; font-weight: 700;
   letter-spacing: 0.3em; color: var(--accent); text-transform: uppercase; margin-bottom: 14px;
 }
 .page-hero .en::before { content: ''; width: 36px; height: 1px; background: var(--accent); }
-.page-hero h1 { color: var(--navy); font-size: 2.2rem; }
+.page-hero h1 { color: var(--ink); font-size: 2.2rem; }
 @media (max-width: 600px) { .page-hero { padding: 48px 0 40px; } .page-hero h1 { font-size: 1.65rem; } }
 .page-hero p { color: var(--muted); margin: 14px 0 0; }
 .breadcrumb { font-size: 0.8rem; color: var(--muted); margin: 18px 0 0; }
 .breadcrumb ol { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.breadcrumb li + li::before { content: "/"; margin-right: 6px; color: #b8c2d0; }
+.breadcrumb li + li::before { content: "/"; margin-right: 6px; color: #c4bdb0; }
 .breadcrumb a { color: var(--muted); text-decoration: none; }
 .breadcrumb a:hover { color: var(--accent); }
 
@@ -147,7 +155,7 @@ a.card:hover .more::after { transform: translateX(4px); }
 .prose p { margin-bottom: 1.2em; }
 .prose ul li, .prose ol li { margin-bottom: 0.4em; }
 .prose strong { background: var(--marker); padding: 1px 4px; border-radius: 4px; }
-.prose blockquote { margin: 1.5em 0; padding: 1.2em 1.5em; background: var(--bg-soft); border-left: 0; border-radius: var(--radius); }
+.prose blockquote { margin: 1.5em 0; padding: 1.2em 1.5em; background: var(--bg-white); border-left: 0; border-radius: var(--radius); }
 .prose blockquote p:last-child { margin-bottom: 0; }
 .note { font-size: 0.88rem; color: var(--muted); }
 
@@ -160,12 +168,12 @@ a.card:hover .more::after { transform: translateX(4px); }
 .side-box ul { list-style: none; padding: 0; margin: 0; }
 .side-box li { margin: 0 0 4px; }
 .side-box li a { display: block; padding: 9px 12px; border-radius: 8px; text-decoration: none; font-size: 0.92rem; color: var(--ink); transition: background .2s; }
-.side-box li a:hover { background: #fff; color: var(--navy); }
-.side-box li a[aria-current="page"] { background: #fff; color: var(--navy); font-weight: 700; box-shadow: 0 4px 14px rgba(11, 33, 61, 0.06); }
+.side-box li a:hover { background: var(--sand); color: var(--navy); }
+.side-box li a[aria-current="page"] { background: var(--sand); color: var(--navy); font-weight: 700; box-shadow: 0 4px 14px rgba(43, 43, 43, 0.06); }
 
 .dl { display: grid; grid-template-columns: max-content 1fr; gap: 0 32px; margin: 0; }
 .dl dt, .dl dd { padding: 14px 0; border-bottom: 1px solid var(--line); }
-.dl dt { font-weight: 700; color: var(--navy); }
+.dl dt { font-weight: 700; color: var(--ink); }
 .dl dd { margin: 0; }
 @media (max-width: 560px) {
   .dl { grid-template-columns: 1fr; }
