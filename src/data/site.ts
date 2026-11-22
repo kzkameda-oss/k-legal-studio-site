@@ -33,7 +33,7 @@ export const site = {
 export const nav = [
   { href: '/services/', label: '業務案内' },
   { href: '/flow/', label: 'ご依頼の流れ' },
-  { href: '/price/', label: '料金について' },
+  { href: '/price/', label: '報酬額表' },
   { href: '/about/', label: '事務所案内' },
   { href: '/contact/', label: 'お問い合わせ' },
 ];

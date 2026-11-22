@@ -2,64 +2,82 @@
 import Base from '../layouts/Base.astro';
 import Cta from '../components/Cta.astro';
 
-// 料金ページ（2026-11-10 組み替え）。報酬の目安（〇円〜）は 2026-11-10 オーナー指示でいったん保留。
-// 数字が決まったら各行に「報酬の目安（税別）」の列を足す（候補と集計は 行政書士\ホームページ\下書き\根拠\2026-11-10_料金の目安_請求実績の集計.md）。
+// 報酬額表・料金ページ（2026-11-22 案。オーナー確認前・未公開）。
+// 報酬の額は 🧾請求DB の実績から作った候補で、オーナーが決める
+// （集計と候補：行政書士\ホームページ\下書き\根拠\2026-11-22_報酬額表_請求実績の集計.md）。
+// fee は税抜の最低額。表には税込（×1.1）を主に、税抜を併記する（消費税法63条の総額表示）。fee が null の行は「お見積り」。
 // 法定手数料は「地方公共団体の手数料の標準に関する政令」の額で、奈良県・京都府の条例額と一致することを
 // 各業務ページの調査（2026-11-09〜10）で確認済み。改定があれば各業務ページの法定手数料の表と一緒に直す。
 const updated = '2026年11月';
 
-type Row = { name: string; legal: string; note?: string };
+type Row = { name: string; fee: number | null; legal: string; note?: string };
 type Group = { title: string; href: string; rows: Row[] };
+
+const yen = (n: number) => n.toLocaleString('ja-JP');
+const withTax = (n: number) => Math.floor(n * 1.1);
 
 const groups: Group[] = [
   {
     title: '建設業許可',
     href: '/services/kensetsu/',
     rows: [
-      { name: '新規（知事許可）', legal: '90,000円', note: '一般と特定の両方を申請するときはそれぞれ必要。大臣許可は登録免許税150,000円' },
-      { name: '更新', legal: '50,000円', note: '5年ごと' },
-      { name: '業種追加', legal: '50,000円', note: '更新と同時のときは合算' },
-      { name: '変更届（役員・営業所技術者等・資本金など）', legal: 'なし' },
+      { name: '新規（知事許可）', fee: 90000, legal: '90,000円', note: '一般と特定の両方を申請するときは法定手数料がそれぞれ必要。大臣許可は登録免許税150,000円' },
+      { name: '更新', fee: 60000, legal: '50,000円', note: '5年ごと。未提出の決算変更届があるときは、1事業年度分ごとに決算変更届の報酬を加算' },
+      { name: '業種追加', fee: 50000, legal: '50,000円', note: '更新と同時のときは法定手数料を合算' },
+      { name: '変更届（役員・営業所技術者等・資本金など）', fee: 30000, legal: 'なし' },
     ],
   },
   {
     title: '決算変更届',
     href: '/services/kessan-henko/',
     rows: [
-      { name: '毎年の決算変更届（事業年度終了届）', legal: 'なし', note: '事業年度の終了から4か月以内' },
+      { name: '毎年の決算変更届（事業年度終了届）', fee: 30000, legal: 'なし', note: '1事業年度分の額。事業年度の終了から4か月以内' },
     ],
   },
   {
     title: '経営事項審査・入札参加資格',
     href: '/services/keishin/',
     rows: [
-      { name: '経営事項審査（経営規模等評価の申請＋総合評定値の請求）', legal: '11,000円〜', note: '1業種の額。1業種増すごとに＋2,500円。別途、登録経営状況分析機関の分析手数料' },
-      { name: '入札参加資格の申請・変更届', legal: 'なし' },
+      { name: '経営事項審査（経営規模等評価の申請＋総合評定値の請求）', fee: 100000, legal: '11,000円〜', note: '報酬は経営状況分析の申請を含みます。法定手数料は1業種の額で、1業種増すごとに＋2,500円。別途、登録経営状況分析機関の分析手数料' },
+      { name: '入札参加資格の申請（京都府）', fee: 80000, legal: 'なし', note: '加点書類・資本関係の申告書の作成を含む' },
+      { name: '入札参加資格の申請（国の一元受付）', fee: 60000, legal: 'なし', note: '各省庁・独立行政法人などの複数の機関へ1回で申請' },
+      { name: '入札参加資格の申請（奈良県・奈良市・木津川市など）', fee: 20000, legal: 'なし', note: '1申請先ごとの額。申請先が増えるごとに加算' },
+      { name: '入札参加資格の変更届', fee: null, legal: 'なし' },
     ],
   },
   {
     title: '農地転用・農地法',
     href: '/services/nochi/',
     rows: [
-      { name: '3条・4条・5条の許可、市街化区域の届出', legal: 'なし', note: '登記事項証明書・公図などの実費、土地改良区の決済金（受益地の場合）は別途' },
+      { name: '3条許可（農地の売買・贈与など）', fee: 60000, legal: 'なし' },
+      { name: '4条・5条許可（市街化調整区域などの転用）', fee: 100000, legal: 'なし' },
+      { name: '4条・5条の届出（市街化区域の転用）', fee: 50000, legal: 'なし' },
     ],
   },
   {
     title: '産業廃棄物収集運搬業許可',
     href: '/services/sanpai/',
     rows: [
-      { name: '新規', legal: '81,000円', note: '積込み地・荷下ろし地の府県ごとに必要' },
-      { name: '更新', legal: '73,000円', note: '5年ごと' },
-      { name: '変更許可（品目の追加など）', legal: '71,000円' },
-      { name: '変更届（車両・役員など）', legal: 'なし' },
+      { name: '新規', fee: 150000, legal: '81,000円', note: '1府県の額。積込み地・荷下ろし地の府県ごとに必要' },
+      { name: '更新', fee: 65000, legal: '73,000円', note: '1府県の額。5年ごと' },
+      { name: '変更許可（品目の追加など）', fee: null, legal: '71,000円' },
+      { name: '変更届（車両・役員など）', fee: 40000, legal: 'なし', note: '車両の台数などで異なります' },
     ],
   },
   {
-    title: 'その他の手続き',
-    href: '/services/',
+    title: '宅地建物取引業免許',
+    href: '/services/takken/',
     rows: [
-      { name: '宅地建物取引業免許（新規・更新、知事免許）', legal: '33,000円', note: '別途、営業保証金の供託または保証協会の分担金' },
-      { name: '古物商許可', legal: '19,000円', note: '警察署へ納付' },
+      { name: '新規（知事免許）', fee: 90000, legal: '33,000円', note: '別途、営業保証金の供託または保証協会の分担金' },
+      { name: '更新（知事免許）', fee: 60000, legal: '33,000円', note: '5年ごと' },
+      { name: '変更届', fee: 30000, legal: 'なし' },
+    ],
+  },
+  {
+    title: '古物商許可',
+    href: '/services/kobutsu/',
+    rows: [
+      { name: '新規', fee: 50000, legal: '19,000円', note: '警察署へ納付' },
     ],
   },
 ];
@@ -67,7 +85,11 @@ const groups: Group[] = [
 const faq = [
   {
     q: '報酬はどのように決まりますか。',
-    a: '手続きの種類を基本に、申請する業種や府県の数、証明資料の揃い具合、過去の未提出の届出の有無、図面の作成や隣接地の同意取得の量などを伺って決めます。初回相談で内容をお聞きしたうえで、報酬と実費を分けた書面のお見積りをお出しします。',
+    a: '報酬額表の額を基本に、申請する業種や府県の数、証明資料の揃い具合、過去の未提出の届出の有無、図面の作成や隣接地の同意取得の量などを伺って決めます。初回相談で内容をお聞きしたうえで、報酬と実費を分けた書面のお見積りをお出しします。',
+  },
+  {
+    q: '表の額より高くなるのはどのようなときですか。',
+    a: '業種や府県の数が多いとき、実務経験の証明に多くの資料が要るとき、過去の決算変更届を何年分かまとめて作るとき、図面や同意書の取得が多いときなどです。お見積りのときに理由を添えてご説明し、ご了承をいただいてから着手します。',
   },
   {
     q: 'お見積りに費用はかかりますか。',
@@ -87,15 +109,15 @@ const jsonLd = [
 ];
 ---
 <Base
-  title="料金について"
-  seoTitle="料金について（報酬の考え方と法定手数料）"
-  description="亀田行政書士事務所（奈良市）の料金の考え方。報酬は案件の内容に応じて事前に書面でお見積りし、建設業許可・経営事項審査・産廃収集運搬業許可などの法定手数料と分けてご提示します。"
+  title="報酬額表・料金"
+  seoTitle="報酬額表（建設業許可・経審・農地転用・産廃の料金）"
+  description="亀田行政書士事務所（奈良市）の報酬額表。建設業許可・決算変更届・経営事項審査・農地転用・産廃収集運搬業許可などの報酬の目安（税込）と法定手数料を、手続きごとに一覧にしています。"
   jsonLd={jsonLd}
 >
   <div class="page-hero">
     <div class="container">
       <span class="en">Price</span>
-      <h1>料金について</h1>
+      <h1>報酬額表・料金</h1>
       <p>費用は「報酬」と「法定手数料などの実費」に分けて、着手前に書面でお見積りします。</p>
     </div>
   </div>
@@ -104,12 +126,12 @@ const jsonLd = [
       <h2>料金の考え方</h2>
       <p>
         許認可の申請は、同じ手続きでも会社の状況（証明資料の有無、営業所の数、対象業種の数など）によって作業量が大きく異なります。
-        当事務所では、初回相談で内容を伺ったうえで<strong>案件ごとにお見積り</strong>し、ご納得いただいてから着手します。
+        当事務所では、下の報酬額表を基本に、初回相談で内容を伺ったうえで<strong>案件ごとにお見積り</strong>し、ご納得いただいてから着手します。
         お見積り後に追加費用が発生する場合は、必ず事前にご説明します。
       </p>
       <ul>
-        <li><strong>報酬</strong>：当事務所の業務に対する費用（消費税別）</li>
-        <li><strong>実費</strong>：官公署に納める申請手数料・登録免許税、証明書の取得費用、郵送費など。かかった額をそのままご請求します</li>
+        <li><strong>報酬</strong>：当事務所の業務に対する費用（表の額は消費税込み。かっこ内は税抜）</li>
+        <li><strong>実費</strong>：官公署に納める申請手数料・登録免許税、証明書の取得費用、郵送費など。かかった額をそのままご請求します（消費税はかかりません）</li>
       </ul>
 
       <h2>報酬に含まれるもの・含まれないもの</h2>
@@ -118,22 +140,35 @@ const jsonLd = [
         <li><strong>含まれないもの</strong>：法定手数料、住民票・登記事項証明書・納税証明書などの証明書の実費、郵送費、講習会の受講料、経営状況分析の手数料、土地家屋調査士・設計事務所など他の専門家に依頼する費用</li>
       </ul>
 
-      <h2>主な手続きの法定手数料</h2>
+      <h2>報酬額表</h2>
       <p class="note">
-        官公署に納める実費の額です（{updated}時点）。奈良県・京都府の知事許可を前提にした額で、国の政令で定める標準額と同じです。
-        改定されることがありますので、お見積りのときに申請先の現行額を確認してご案内します。
+        報酬は、標準的な内容の場合の<strong>最低額の目安</strong>です（{updated}時点）。業種・府県・届出の年度の数や、資料の揃い具合によって変わります。
+        「お見積り」の手続きは、内容を伺ってから額をお知らせします。
+        法定手数料は奈良県・京都府の知事許可を前提にした額で、国の政令で定める標準額と同じです。改定されることがありますので、お見積りのときに申請先の現行額を確認してご案内します。
       </p>
       {groups.map((g) => (
         <>
           <h3><a href={g.href}>{g.title}</a></h3>
           <div class="table-wrap">
-            <table>
+            <table class="fee-table">
               <thead>
-                <tr><th>手続き</th><th>法定手数料</th><th>備考</th></tr>
+                <tr><th>手続き</th><th>報酬（税込）</th><th>法定手数料</th><th>備考</th></tr>
               </thead>
               <tbody>
                 {g.rows.map((r) => (
-                  <tr><td>{r.name}</td><td>{r.legal}</td><td>{r.note ?? ''}</td></tr>
+                  <tr>
+                    <td>{r.name}</td>
+                    <td class="fee">
+                      {r.fee === null ? 'お見積り' : (
+                        <>
+                          <span class="fee__main">{yen(withTax(r.fee))}円〜</span>
+                          <span class="fee__sub">（税抜 {yen(r.fee)}円〜）</span>
+                        </>
+                      )}
+                    </td>
+                    <td>{r.legal}</td>
+                    <td>{r.note ?? ''}</td>
+                  </tr>
                 ))}
               </tbody>
             </table>
@@ -170,14 +205,17 @@ const jsonLd = [
 <style>
   .prose h3 a { color: var(--navy); text-decoration: none; }
   .prose h3 a:hover { text-decoration: underline; }
+  .fee-table { table-layout: fixed; width: 100%; }
+  .fee-table th:nth-child(1) { width: 32%; }
+  .fee-table th:nth-child(2) { width: 22%; }
+  .fee-table th:nth-child(3) { width: 15%; }
+  .fee-table td.fee, .fee-table td:nth-child(3) { white-space: nowrap; }
+  .fee__main { display: block; font-weight: 700; color: var(--navy); }
+  .fee__sub { display: block; font-size: 0.85em; color: var(--muted); }
   .faq dl { margin: 0; }
   .faq__item { background: var(--bg-white); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 12px; }
   .faq__item dt { font-weight: 700; color: var(--navy); display: grid; grid-template-columns: 28px 1fr; gap: 8px; }
   .faq__item dd { margin: 10px 0 0; display: grid; grid-template-columns: 28px 1fr; gap: 8px; }
   .faq__mark { font-family: var(--font-serif); font-weight: 700; color: var(--gold); line-height: 1.6; }
   .faq__mark--a { color: var(--navy); }
-  @media (max-width: 600px) {
-    .table-wrap table { min-width: 0; width: 100%; }
-    .table-wrap th { white-space: normal; }
-  }
 </style>
